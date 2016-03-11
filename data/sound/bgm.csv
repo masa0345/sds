@@ -1,0 +1,5 @@
+/登録名,ループ位置,ファイルパス
+stage0,0,data/sound/bgm/sdselect.ogg
+/boss0,0,data/sound/bgm/sdboss.ogg
+stage1,0,data/sound/bgm/sdstage.ogg
+boss1,0,data/sound/bgm/sdboss.ogg
