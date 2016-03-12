@@ -5,6 +5,7 @@
 #include "Item.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Effect.h"
 #include <DxLib.h>
 
 Block::Block() : GameEntity(pos) {
@@ -149,3 +150,18 @@ void BlockRotaLiftL::Update() {
 	}
 	if (stateCnt == 360) stateCnt = 0;
 }
+
+BlockNextMapGate::BlockNextMapGate() {
+	width = MW;
+	height = MH * 4;
+	atkHitbox = std::make_shared<HitBox>(width, height);
+}
+void BlockNextMapGate::Update() {
+	if (stateCnt % 12 == 0) {
+		Create(std::make_shared<EffectNextGate>(pos));
+	}
+}
+void BlockNextMapGate::SetDamage(Player * p) {
+	stage->SetLoadNext(true);
+}
+void BlockNextMapGate::SetDamage(Enemy * p){ }

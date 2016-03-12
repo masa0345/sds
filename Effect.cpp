@@ -347,3 +347,70 @@ EffectMagnetar::EffectMagnetar(const Vector2& p, GameEntity* parent) : Effect(p)
 		Create(std::make_shared<EffectMagnetarPart>(p, parent));
 	exist = false;
 }
+
+// マップゲート
+class EffectNextGatePart1 : public Effect
+{
+public:
+	EffectNextGatePart1(const Vector2& p) : Effect(p) {
+		maxcnt = 90;
+		v = 1.f;
+		rad_v = 0.f;
+		img->hdl = Image::Instance()->Load("eff_gate");
+		img->exRate = RandFloat(1.5f, 3.5f);
+		img->ofs_y = (int)(64 - img->exRate*64.f) / 2;
+		img->angle = PI / 2.f;
+		img->blendmode = DX_BLENDMODE_ADD;
+		priority = Priority::FRONT_EFFECT;
+	}
+	void Update() override {
+		img->alpha = (int)(148.f * sinf(PI / maxcnt * stateCnt));
+	}
+};
+class EffectNextGatePart2 : public Effect
+{
+public:
+	EffectNextGatePart2(const Vector2& p) : Effect(p) {
+		maxcnt = 90;
+		v = 1.f;
+		rad_v = PI;
+		img->hdl = Image::Instance()->Load("eff_gate");
+		img->exRate = RandFloat(1.5f, 3.5f);
+		img->ofs_x = 90;
+		img->ofs_y = (int)(64 - img->exRate*64.f) / 2;
+		img->angle = PI / 2.f;
+		img->blendmode = DX_BLENDMODE_ALPHA;
+		priority = Priority::FRONT_EFFECT;
+	}
+	void Update() override {
+		img->alpha = (int)(84.f * sinf(PI / maxcnt * stateCnt));
+	}
+};
+class EffectNextGatePart3 : public Effect
+{
+public:
+	EffectNextGatePart3(const Vector2& p) : Effect(p) {
+		maxcnt = 90;
+		pos.x += RandFloat0(90.f);
+		v = RandFloat(1.5f, 2.f);
+		rad_v = -PI / 2.f;
+		img->hdl = Image::Instance()->Load("item_light");
+		img->num = 2;
+		img->exRate = RandFloat(0.5f, 1.f);
+		img->angle = RandFloat(PI);
+		img->blendmode = DX_BLENDMODE_ADD;
+		priority = Priority::FRONT_EFFECT;
+	}
+	void Update() override {
+		img->angle += PI / 60.f;
+		img->alpha = (int)(80.f * cosf(PI / 2.f / maxcnt * stateCnt));
+	}
+};
+EffectNextGate::EffectNextGate(const Vector2& p) : Effect(p)
+{
+	pos = p + Vector2(-48.f, 32.f);
+	Create(std::make_shared<EffectNextGatePart1>(pos));
+	Create(std::make_shared<EffectNextGatePart2>(pos));
+	Create(std::make_shared<EffectNextGatePart3>(pos));
+	exist = false;
+}

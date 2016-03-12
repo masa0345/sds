@@ -17,6 +17,7 @@ public:
 	Vector2 TransCoordBackGround(const Vector2& scale) const; // ”wŒi—p•ÏŠ·
 	Rect GetVisibleRect(int mmx, int mmy) const;
 	Vector2 GetPos() const;
+	Rect GetField() const;
 	void SetShake(float ampl, float freq, int duration, int damp);
 	void SetField(const Rect& field);
 	void SetTarget(std::shared_ptr<GameEntity> target);

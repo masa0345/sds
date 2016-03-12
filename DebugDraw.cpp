@@ -95,7 +95,6 @@ void DebugDraw::InitFont()
 void DebugDraw::Update()
 {
 	SetWriteZBuffer3D(FALSE);
-	SetDrawBright(254, 254, 254);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 200);
 	while (!dobj.empty()) {
 		dobj.front()->Draw();

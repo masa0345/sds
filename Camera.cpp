@@ -5,7 +5,7 @@
 
 
 Camera::Camera() {
-	field = { 0,0,1200,600 };
+	//field = { 0,0,1200,600 };
 }
 
 void Camera::Update() {
@@ -70,6 +70,11 @@ Rect Camera::GetVisibleRect(int mmx, int mmy) const {
 Vector2 Camera::GetPos() const
 {
 	return pos;
+}
+
+Rect Camera::GetField() const
+{
+	return field;
 }
 
 void Camera::SetShake(float ampl, float freq, int duration, int damp) {

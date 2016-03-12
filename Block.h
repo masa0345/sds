@@ -60,3 +60,13 @@ private:
 	float rad_v;
 	std::vector<std::shared_ptr<LiftChild>> lift;
 };
+
+// マップゲート
+class BlockNextMapGate : public Block
+{
+public:
+	BlockNextMapGate();
+	void Update() override;
+	virtual void SetDamage(Player* p) override;
+	virtual void SetDamage(Enemy* p) override;
+};

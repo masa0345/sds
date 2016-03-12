@@ -95,3 +95,10 @@ class EffectMagnetar : public Effect
 public:
 	EffectMagnetar(const Vector2& p, GameEntity* parent);
 };
+
+// マップゲート
+class EffectNextGate : public Effect
+{
+public:
+	EffectNextGate(const Vector2& p);
+};

@@ -17,6 +17,7 @@ public:
 	virtual void DamageFrom(GameEntity*) override;
 	void SetPos(const Vector2& pos) override;
 
+	void InitState();
 	void CalcDamage(int damage);
 	bool PickItem(int type, int mp);
 	bool IsShift() const;
@@ -32,6 +33,7 @@ public:
 
 	void SetMP(int mp);
 	void AddMP(int mp);
+	void SetIgnoreCamera(bool ic);
 
 private:
 	void StatePattern();
@@ -43,5 +45,6 @@ private:
 	byte hitmap;
 	int fireCnt, itemCnt;
 	BulletType bulType;
+	bool ignoreCamera;
 	std::shared_ptr<JoypadInput> input;
 };

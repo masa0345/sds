@@ -28,6 +28,7 @@ Stage::Stage() {
 	score = prevScore = 0;
 	deathCnt = 0;
 	rank = 0;
+	areaNum = 0;
 	loadNext = false;
 	enemy.resize(ENEMY_LOAD_MAX);
 }
@@ -56,8 +57,10 @@ int Stage::LoadStage() {
 	}
 	mmx = data.mmx + 1;
 	mmy = data.mmy + 1;
+	areaNum = 0;
 
-	camera.SetField({ 0, 0, mmx*MW, mmy*MH });
+	camera.SetField({ area[areaNum][0]*MW, area[areaNum][1]*MH,
+		area[areaNum][2]*MW+MW, area[areaNum][3]*MH+MH });
 
 	for (int i = 0; i < ENEMY_LOAD_MAX; i++) {
 		if (data.enemy[i].x == -1) break;
@@ -65,12 +68,14 @@ int Stage::LoadStage() {
 	}
 	MapChip::Instance()->Set(*this, data.map);
 
+	camera.Update();
+
 	return 0;
 }
 
 void Stage::PlaceEnemies() {
 	for (auto& e : enemy) {
-		if (e.area != -1 /*&& e.area == mapNum*/) {
+		if (e.area != -1 && e.area == areaNum) {
 			std::shared_ptr<GameEntity> o = nullptr;
 			switch (e.type) {
 			case 0: o = GameEntity::Create(std::make_shared<EnemyType0>()); break;
@@ -80,7 +85,7 @@ void Stage::PlaceEnemies() {
 			case 4: o = GameEntity::Create(std::make_shared<BlockLift>()); break;
 			case 5: o = GameEntity::Create(std::make_shared<BlockRotaLiftR>()); break;
 			case 6: o = GameEntity::Create(std::make_shared<BlockRotaLiftL>()); break;
-			case 7: o = GameEntity::Create(std::make_shared<BlockBreakable>()); break;
+			case 7: o = GameEntity::Create(std::make_shared<BlockNextMapGate>()); break;
 			case 8: o = GameEntity::Create(std::make_shared<BlockBreakable>()); break;
 			case 9: o = GameEntity::Create(std::make_shared<BlockBreakable>()); break;
 			}
@@ -89,6 +94,29 @@ void Stage::PlaceEnemies() {
 			}
 		}
 	}
+}
+
+bool Stage::CheckAreaScroll() const {
+	DebugDraw::String(0, 0, 0xffffff, "%.0f %d %d", player->GetPos().x, area[areaNum][2] * MW, areaNum);
+	return (area[areaNum][4] == 0 && player->GetPos().x > area[areaNum][2] * MW) ||
+		(area[areaNum][4] == 1 && player->GetPos().x < area[areaNum][0] * MW + MW);
+}
+
+void Stage::GoNextArea() {
+	++areaNum;
+	GameEntity::RemoveExceptPlayer();
+	PlaceEnemies();
+	camera.SetField({ area[areaNum][0] * MW, area[areaNum][1] * MH,
+		area[areaNum][2] * MW + MW, area[areaNum][3] * MH + MH });
+}
+
+void Stage::GoNextMap() {
+	++mapNum;
+	GameEntity::RemoveExceptPlayer();
+	LoadStage();
+	PlaceEnemies();
+	player->InitState();
+	loadNext = false;
 }
 
 Camera* Stage::GetCamera() {
@@ -107,12 +135,24 @@ int Stage::GetMapNum() const {
 	return mapNum;
 }
 
+int Stage::GetAreaNum() const {
+	return areaNum;
+}
+
+bool Stage::GetLoadNext() const {
+	return loadNext;
+}
+
 std::shared_ptr<Player> Stage::GetPlayer() const {
 	return player;
 }
 
 const std::vector<EnemyMapPos>& Stage::GetEnemyMapPos() const {
 	return enemy;
+}
+
+const int* Stage::GetArea(int mn) const {
+	return area[mn];
 }
 
 void Stage::SetStageMapNum(int stg, int map) {
@@ -127,4 +167,9 @@ void Stage::SetPlayer(std::shared_ptr<Player> p) {
 
 void Stage::AddScore(int s) {
 	score += s;
+}
+
+void Stage::SetLoadNext(bool load)
+{
+	loadNext = load;
 }

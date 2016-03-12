@@ -1,5 +1,4 @@
 #include "GameEntity.h"
-//#include "Sprite.h"
 #include "Image.h"
 #include "Stage.h"
 #include <DxLib.h>
@@ -18,7 +17,6 @@ GameEntity::GameEntity(const Vector2& pos) :
 	otype(UNKNOWN),
 	priority(Priority::EFFECT),
 	img(std::make_shared<ImageData>()),
-	//hasHitbox(false),
 	atkHitbox(nullptr), dmgHitbox(nullptr),
 	hitFilter(0),
 	hp(0), hpmax(-1),
@@ -162,6 +160,16 @@ void GameEntity::DrawAll() {
 std::shared_ptr<GameEntity> GameEntity::Create(std::shared_ptr<GameEntity> e) {
 	manager.push_back(e);
 	return e;
+}
+
+// プレイヤー以外全て削除
+void GameEntity::RemoveExceptPlayer()
+{
+	manager.erase(
+		std::remove_if(manager.begin(), manager.end(),
+			[&](std::shared_ptr<GameEntity> p) { 
+		return p->GetObjectType() != PLAYER;
+	}), manager.end());
 }
 
 bool GameEntity::Targetable() const {

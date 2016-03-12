@@ -8,6 +8,7 @@
 #include "Item.h"
 #include "Projectile.h"
 #include "Frontend.h"
+#include "Stage.h"
 
 namespace {
 	enum PlayerState {
@@ -51,6 +52,7 @@ Player::Player(std::shared_ptr<JoypadInput> input) :
 	fireCnt = 0;
 	itemCnt = 0;
 	bulType = STAR;
+	ignoreCamera = false;
 	dmgHitbox = std::make_shared<HitBox>(width, height);
 	Frontend::Create(std::make_shared<FrontendPlayerGauge>(this));
 }
@@ -60,18 +62,52 @@ Player::~Player() { }
 void Player::Update() 
 {
 	StatePattern();
-	dmgHitbox->SetRect(0, playerhit[img->num/6]);
+	// 重力
+	if (vel.y < 8.f) vel.y += state == DAMAGE ? 0.4f : 0.8f;
+	else vel.y = 8.f;
+
+	if (vel.y < -16.f) vel.y = -13.f;
+
+	if (hitmap & (HIT_SLOPE | HIT_TOP) && jump == 2) {
+		vel.y += (fabs(vel.x) + 1) / 2;
+	}
+	if (jump) jump = 1;
+
+	// 無敵時間
+	if (invincible > 0) {
+		img->drawflag = invincible % 2 == 1;
+		--invincible;
+	}
+	// アイテム取得クール
+	if (itemCnt > 0) {
+		--itemCnt;
+	}
+	// ダッシュ中残像
+	if (state == DASH || state == DASH_JUMP) {
+		if (stateCnt % 2) Create(std::make_shared<EffectAfterImage2>(pos, img, dir));
+	}
+	// 死亡
 	if (hp <= 0) {
 		hp = 0;
 		exist = false;
 		Create(std::make_shared<EffectPlayerDeath>(pos));
 		Sound::Instance()->Play("死亡");
 	}
-	DebugDraw::String({ 0,32 }, 0xffffff, "%f", vel.y);
+	// 画面外補正
+	if (!ignoreCamera) {
+		Rect cf = stage->GetCamera()->GetField();
+		if (cf.left > pos.x - width / 2) pos.x = (float)(cf.left + width / 2);
+		else if (cf.right < pos.x + width / 2) pos.x = (float)(cf.right - width / 2);
+		// 落下死
+		if (cf.bottom + 120 < pos.y) hp = 0;
+	}
+	// 当たり判定更新
+	dmgHitbox->SetRect(0, playerhit[img->num / 6]);
 
 	if (input->Get(INPUT_D) == 1) {
-		auto o = Create(std::make_shared<ItemWeapon>(pos, GEAR));
-		o->SetPos({ pos.x, pos.y - 100.f });
+		//auto o = Create(std::make_shared<ItemWeapon>(pos, GEAR));
+		//o->SetPos({ pos.x, pos.y - 100.f });
+		stage->SetLoadNext(true);
 	}
 }
 
@@ -104,6 +140,14 @@ void Player::UpdateColResponse() {
 
 void Player::SetPos(const Vector2& p) {
 	pos = prev = p;
+}
+
+void Player::InitState()
+{
+	state = STAND_MOVE;
+	stateCnt = animCnt = 0;
+	vel = { 0.f, 0.f };
+	img->num = 1;
 }
 
 void Player::DamageFrom(GameEntity* e)
@@ -372,40 +416,12 @@ void Player::StatePattern()
 		break;
 	}
 
-	// 重力
-	if (vel.y < 8.f) vel.y += state == DAMAGE ? 0.4f : 0.8f;
-	else vel.y = 8.f;
-
-	if (vel.y < -16.f) vel.y = -13.f;
-
-	if (hitmap & (HIT_SLOPE | HIT_TOP) && jump == 2) {
-		vel.y += (fabs(vel.x) + 1) / 2;
-	}
-
-	if (jump) jump = 1;
-
-	// 無敵時間
-	if (invincible > 0) {
-		img->drawflag = invincible % 2 == 1;
-		--invincible;
-	}
-
-	// アイテム取得クール
-	if (itemCnt > 0) {
-		--itemCnt;
-	}
-
 	// アイテムを捨てる
 	if (bulType != STAR && input->Get(INPUT_A) == 1) {
 		Create(std::make_shared<ItemWeapon>(pos, bulType, mp));
 		bulType = STAR;
 		mp = mpmax;
 		Sound::Instance()->Play("捨てる");
-	}
-
-	// ダッシュ中残像
-	if (state == DASH || state == DASH_JUMP) {
-		if(stateCnt%2) Create(std::make_shared<EffectAfterImage2>(pos, img, dir));
 	}
 
 	// 弾生成
@@ -532,4 +548,8 @@ void Player::SetMP(int mp) {
 void Player::AddMP(int m) {
 	mp += m;
 	if (mp > mpmax) mp = mpmax;
+}
+void Player::SetIgnoreCamera(bool ic)
+{
+	ignoreCamera = ic;
 }

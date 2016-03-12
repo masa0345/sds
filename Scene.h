@@ -51,6 +51,7 @@ public:
 	virtual Scene* Update() = 0;
 	static void SetInput(std::shared_ptr<JoypadInput> i);
 protected:
+	int state;
 	static std::shared_ptr<JoypadInput> input;
 };
 
@@ -77,6 +78,26 @@ class SceneGameMain : public Scene
 {
 public:
 	SceneGameMain(std::shared_ptr<Stage> s);
+	Scene* Update() override;
+private:
+	std::shared_ptr<Stage> stage;
+};
+
+// •”‰®ˆÚ“®
+class SceneAreaScroll : public Scene
+{
+public:
+	SceneAreaScroll(std::shared_ptr<Stage> s);
+	Scene* Update() override;
+private:
+	std::shared_ptr<Stage> stage;
+};
+
+// ƒ}ƒbƒvˆÚ“®
+class SceneMoveMap : public Scene
+{
+public:
+	SceneMoveMap(std::shared_ptr<Stage> s);
 	Scene* Update() override;
 private:
 	std::shared_ptr<Stage> stage;
