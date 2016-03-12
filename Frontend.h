@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <list>
+#include <memory>
 #include "Vector2.h"
 
 struct ImageData;
@@ -17,10 +19,18 @@ public:
 	virtual void Update();
 	virtual void Draw() const;
 
-private:
+	bool GetExist() const;
+
+	static void InitManager();
+	static void Create(std::shared_ptr<Frontend>);
+	static void UpdateAll();
+	static void DrawAll();
+protected:
 	bool exist;
 	Vector2 pos;
-	std::vector<ImageData> img;
+	//std::vector<ImageData> img;
+
+	static std::list<std::shared_ptr<Frontend>> manager;
 };
 
 class FrontendPlayerGauge : public Frontend

@@ -7,6 +7,7 @@
 #include "Enemy.h"
 #include "Item.h"
 #include "Projectile.h"
+#include "Frontend.h"
 
 namespace {
 	enum PlayerState {
@@ -31,7 +32,7 @@ namespace {
 	};
 }
 
-Player::Player(const Vector2& pos, std::shared_ptr<JoypadInput> input) : 
+Player::Player(std::shared_ptr<JoypadInput> input) : 
 	GameEntity(pos), input(input)
 {
 	otype = PLAYER;
@@ -51,6 +52,7 @@ Player::Player(const Vector2& pos, std::shared_ptr<JoypadInput> input) :
 	itemCnt = 0;
 	bulType = STAR;
 	dmgHitbox = std::make_shared<HitBox>(width, height);
+	Frontend::Create(std::make_shared<FrontendPlayerGauge>(this));
 }
 
 Player::~Player() { }
@@ -68,7 +70,7 @@ void Player::Update()
 	DebugDraw::String({ 0,32 }, 0xffffff, "%f", vel.y);
 
 	if (input->Get(INPUT_D) == 1) {
-		auto o = Create(std::make_shared<ItemWeapon>(pos, GHOST_AD));
+		auto o = Create(std::make_shared<ItemWeapon>(pos, GEAR));
 		o->SetPos({ pos.x, pos.y - 100.f });
 	}
 }

@@ -1,16 +1,9 @@
 #include <DxLib.h>
 #include <memory>
-#include "Input.h"
 #include "DebugDraw.h"
+#include "Scene.h"
 #include "common.h"
 
-#include "Image.h"
-#include "Player.h"
-#include "Stage.h"
-#include "MapChip.h"
-#include "Sound.h"
-#include "Projectile.h"
-#include "Frontend.h"
 
 // 0Å`rÇ‹Ç≈ÇÃóêêî
 inline float RandFloat0(float r) {
@@ -47,41 +40,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	DebugDraw::InitFont();
 #endif
 
-	auto pad1 = std::make_shared<JoypadInput>(DX_INPUT_PAD1 | DX_INPUT_KEY);
-
-	Image::Instance()->Init("data/image/image.csv");
-	Sound::Instance()->Init();
-	PlayerBullet::Load();
-
-	std::shared_ptr<Player> p = std::make_shared<Player>(Vector2(200.f, 100.f), pad1);
-	std::shared_ptr<Stage> stage = std::make_shared<Stage>();
-	stage->SetPlayer(p);
-	GameEntity::SetStage(stage);
-	GameEntity::Create(p);
-	stage->SetStageMapNum(1, 0);
-	stage->LoadStage();
-	stage->PlaceEnemies();
-	std::shared_ptr<Frontend> pg = std::make_shared<FrontendPlayerGauge>(p.get());
+	auto game = std::make_shared<SceneManager>();
 
 	while (!ScreenFlip() && !ProcessMessage() && !ClearDrawScreen() && !clsDx())
 	{
-		pad1->Update();
-		Sound::Instance()->UpdateState();
-
-		GameEntity::UpdateEntities();
-		pg->Update();
-
-		MapChip::Instance()->Draw(*stage->GetCamera());
-		GameEntity::DrawEntities();
-		pg->Draw();
-
-		DebugDraw::String({ 0, 0 }, 0xffff00, "ESCÇ≈èIóπ %d", pad1->Get(INPUT_Z));
+		game->Update();
 
 
 #ifdef DEBUG_DRAW
 		DebugDraw::Update();
 #endif 
-		if (pad1->Get(INPUT_ESC) == 1) break;
+		if (game->GetGameExit()) break;
 	}
 
 	DxLib_End();

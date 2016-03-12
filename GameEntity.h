@@ -108,8 +108,9 @@ private:
 	bool		rmflag;
 
 public:
-	static void UpdateEntities();
-	static void DrawEntities();
+	static void InitManager();
+	static void UpdateAll();
+	static void DrawAll();
 	static std::shared_ptr<GameEntity> Create(std::shared_ptr<GameEntity> e);
 	static void SetStage(std::shared_ptr<Stage> st);
 	

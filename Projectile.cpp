@@ -338,6 +338,7 @@ void BulletGear::SetDamage(Enemy* e) {
 		break;
 	case 2:
 		if (std::find(victim.begin(), victim.end(), e) != victim.end()) return;
+		//stage->GetCamera()->SetShake(4.f, 55.f, 4, 16);
 		e->AddHP(-power);
 		victim.push_back(e);
 		++hitnum;

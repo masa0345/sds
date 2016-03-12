@@ -112,7 +112,13 @@ std::shared_ptr<GameEntity> GameEntity::FindNearest(ObjectType t) const {
 	return ret;
 }
 
-void GameEntity::UpdateEntities() {
+void GameEntity::InitManager() {
+	manager.clear();
+	atkColobj.clear();
+	dmgColobj.clear();
+}
+
+void GameEntity::UpdateAll() {
 	if (manager.empty()) return;
 
 	// rmflag == trueのオブジェクトを削除
@@ -149,7 +155,7 @@ void GameEntity::UpdateEntities() {
 	});
 }
 
-void GameEntity::DrawEntities() {
+void GameEntity::DrawAll() {
 	for (auto e : manager) e->Draw();
 }
 
