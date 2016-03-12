@@ -5,6 +5,8 @@
 #include "Projectile.h"
 #include <DxLib.h>
 
+std::list<std::shared_ptr<Frontend>> Frontend::manager;
+
 Frontend::Frontend() : exist(true) {
 }
 
@@ -15,6 +17,38 @@ void Frontend::Update() {
 
 void Frontend::Draw() const {
 }
+
+bool Frontend::GetExist() const {
+	return exist;
+}
+
+void Frontend::InitManager()
+{
+	manager.clear();
+}
+
+void Frontend::Create(std::shared_ptr<Frontend> f)
+{
+	manager.push_back(f);
+}
+
+void Frontend::UpdateAll()
+{
+	if (manager.empty()) return;
+
+	manager.erase(
+		std::remove_if(manager.begin(), manager.end(),
+			[](std::shared_ptr<Frontend> p) { return !p->GetExist(); }),
+		manager.end());
+
+	for (auto f : manager) f->Update();
+}
+
+void Frontend::DrawAll()
+{
+	for (auto f : manager) f->Draw();
+}
+
 
 
 FrontendPlayerGauge::FrontendPlayerGauge(Player* p) {
