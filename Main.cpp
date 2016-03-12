@@ -10,6 +10,7 @@
 #include "MapChip.h"
 #include "Sound.h"
 #include "Projectile.h"
+#include "Frontend.h"
 
 // 0`r‚Ü‚Å‚Ì—”
 inline float RandFloat0(float r) {
@@ -60,6 +61,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	stage->SetStageMapNum(1, 0);
 	stage->LoadStage();
 	stage->PlaceEnemies();
+	std::shared_ptr<Frontend> pg = std::make_shared<FrontendPlayerGauge>(p.get());
 
 	while (!ScreenFlip() && !ProcessMessage() && !ClearDrawScreen() && !clsDx())
 	{
@@ -67,9 +69,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		Sound::Instance()->UpdateState();
 
 		GameEntity::UpdateEntities();
+		pg->Update();
 
 		MapChip::Instance()->Draw(*stage->GetCamera());
 		GameEntity::DrawEntities();
+		pg->Draw();
 
 		DebugDraw::String({ 0, 0 }, 0xffff00, "ESC‚ÅI—¹ %d", pad1->Get(INPUT_Z));
 
