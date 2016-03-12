@@ -7,6 +7,7 @@ enum BulletType;
 
 class Player : public GameEntity 
 {
+	friend class FrontendPlayerGauge;
 public:
 	Player(const Vector2& pos, std::shared_ptr<JoypadInput> input);
 	virtual ~Player();
