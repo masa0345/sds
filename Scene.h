@@ -42,6 +42,14 @@ public:
 	Scene* Update() override;
 };
 
+// タイトルの前
+class SceneTitleInit : public Scene
+{
+public:
+	SceneTitleInit();
+	Scene* Update() override;
+};
+
 // ステージ開始
 class SceneStageStart : public Scene
 {
@@ -111,3 +119,53 @@ public:
 private:
 	std::shared_ptr<Stage> stage;
 };
+
+// メニュー付きシーン
+class SceneWithMenu : public Scene
+{
+public:
+	SceneWithMenu();
+protected:
+	void MoveCursor(int x, int y);
+	int MoveCursorX(int menuNum, bool loop = true);
+	int MoveCursorY(int menuNum, bool loop = true);
+
+	int curX, curY;
+	std::vector<bool> curFlag;
+};
+
+
+// タイトル画面
+class SceneTitle : public SceneWithMenu
+{
+public:
+	SceneTitle(int sc = 0);
+	Scene* Update() override;
+private:
+	int backScroll;
+};
+
+// ステージ選択
+class SceneStageSelect : public SceneWithMenu
+{
+public:
+	SceneStageSelect(int sc = 0);
+	Scene* Update() override;
+private:
+	int backScroll;
+	std::shared_ptr<Stage> stage;
+};
+
+// オプション
+
+// ポーズ
+class ScenePause : public SceneWithMenu
+{
+public:
+	ScenePause(std::shared_ptr<Stage> s);
+	Scene* Update() override;
+private:
+	std::shared_ptr<Stage> stage;
+};
+
+

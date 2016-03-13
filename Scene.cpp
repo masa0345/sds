@@ -19,12 +19,9 @@ namespace {
 
 SceneManager::SceneManager() : gameExit(false)
 {
-	Image::Instance()->Init("data/image/image.csv");
-	Sound::Instance()->Init();
-	PlayerBullet::Load();
 	input = std::make_shared<JoypadInput>(DX_INPUT_PAD1 | DX_INPUT_KEY);
 	Scene::SetInput(input);
-	scene = new SceneDebugStart();
+	scene = new SceneTitleInit();
 }
 
 SceneManager::~SceneManager()
@@ -43,7 +40,7 @@ void SceneManager::Update()
 		delete scene;
 		scene = ns;
 	}
-	if (input->Get(INPUT_ESC) == 1) gameExit = true;
+	if (input->Get(INPUT_ESC) == 1 || scene == nullptr) gameExit = true;
 }
 
 bool SceneManager::GetGameExit() const
@@ -67,12 +64,60 @@ SceneDebugStart::SceneDebugStart()
 
 Scene* SceneDebugStart::Update()
 {
+	Image::Instance()->Init("data/image/image.csv");
+	Sound::Instance()->Init();
+	PlayerBullet::Load();
 	fonts.push_back(std::make_shared<Font>("梅PゴシックC5", 24, 4, "data/font/ume-pgc5.ttf"));
 	fonts.push_back(std::make_shared<Font>("梅PゴシックC5", 16, 3, "data/font/ume-pgc5.ttf", DX_FONTTYPE_ANTIALIASING_EDGE));
 	auto stage = std::make_shared<Stage>();
 	stage->SetStageMapNum(1, 0);
 	stage->LoadBGM();
 	return new SceneStageStart(stage);
+}
+
+
+// タイトルの前
+SceneTitleInit::SceneTitleInit()
+{
+	images.push_back(LoadGraph("data/image/system/x68.png"));
+	Bright::Instance()->ChangeBright(0);
+}
+
+Scene* SceneTitleInit::Update()
+{
+	int t;
+	switch (state) {
+	case 0:
+		if (Bright::Instance()->ChangeBright(255, 30)) ++state;
+		break;
+	case 1: // データロード
+		t = GetNowCount();
+		Image::Instance()->Init("data/image/image.csv");
+		Sound::Instance()->Init();
+		//ショットデータ読み込み
+		PlayerBullet::Load();
+		//セーブデータ読み込み
+		Save::Instance()->LoadSaveData();
+		//フォントデータ読み込み
+		ChangeFont("ＭＳ ゴシック");
+		SetFontThickness(3);
+		SetFontSize(16);
+		ChangeFontType(1);
+		fonts.push_back(std::make_shared<Font>("梅PゴシックC5", 24, 4, "data/font/ume-pgc5.ttf"));
+		fonts.push_back(std::make_shared<Font>("梅PゴシックC5", 16, 3, "data/font/ume-pgc5.ttf", DX_FONTTYPE_ANTIALIASING_EDGE));
+		//ロードにかかった時間
+		t = GetNowCount() - t;
+		// ロードが1000ms以下なら1000msまで待機
+		if (t < 1000) Sleep(1000 - t);
+		++state;
+		break;
+	case 2:
+		if (Bright::Instance()->ChangeBright(0, 30)) return new SceneTitle();
+	}
+	DrawBox(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0xffffff, TRUE);
+	DrawGraph(60, 40, images[0], TRUE);
+
+	return this;
 }
 
 // ステージ開始
@@ -160,6 +205,9 @@ Scene* SceneGameMain::Update()
 	}
 	if (Event::GetEventFlag()) {
 		return new SceneEvent(stage);
+	}
+	if (input->Get(INPUT_P) == 1) {
+		return new ScenePause(stage);
 	}
 
 	return this;
@@ -310,7 +358,7 @@ Scene* ScenePlayerDeath::Update()
 		if (Bright::Instance()->ChangeBright(0, 120)) {
 			Save::Instance()->SaveStageResult(stage);
 			Save::Instance()->SaveScore();
-			//return GAME_TITLE;
+			return new SceneTitle();
 		}
 		break;
 	}
@@ -414,7 +462,7 @@ Scene* SceneStageClear::Update()
 		if (stateCnt > 120) {
 			if (Bright::Instance()->ChangeBright(0, 120)) {
 				Sound::Instance()->StopAll();
-				//return STAGE_SELECT;
+				return new SceneStageSelect();
 			}
 		}
 		break;
@@ -424,3 +472,312 @@ Scene* SceneStageClear::Update()
 	return this;
 }
 
+// メニュー付きシーン
+SceneWithMenu::SceneWithMenu() : curX(0), curY(0)
+{
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+}
+
+void SceneWithMenu::MoveCursor(int x, int y)
+{
+	MoveCursorX(x);
+	MoveCursorY(y);
+}
+
+int SceneWithMenu::MoveCursorX(int menuNum, bool loop)
+{
+	assert(menuNum > 0);
+
+	if (input->Get(INPUT_RIGHT) % 30 == 1) {
+		Sound::Instance()->Play("カーソル移動");
+		if (loop) {
+			curX = (curX + 1) % menuNum;
+		} else {
+			if (curX < menuNum - 1) curX++;
+		}
+		return 1;
+	} else if (input->Get(INPUT_LEFT) % 30 == 1) {
+		Sound::Instance()->Play("カーソル移動");
+		if (loop) {
+			curX = (curX + menuNum - 1) % menuNum;
+		} else {
+			if (curX > 0) curX--;
+		}
+		return -1;
+	}
+	return 0;
+}
+
+int SceneWithMenu::MoveCursorY(int menuNum, bool loop)
+{
+	assert(menuNum > 0);
+	int ret = 0;
+	if (input->Get(INPUT_DOWN) % 30 == 1) {
+		Sound::Instance()->Play("カーソル移動");
+		if (loop) {
+			curY = (curY + 1) % menuNum;
+		} else {
+			if (curY < menuNum - 1) curY++;
+		}
+		ret = 1;
+	} else if (input->Get(INPUT_UP) % 30 == 1) {
+		Sound::Instance()->Play("カーソル移動");
+		if (loop) {
+			curY = (curY + menuNum - 1) % menuNum;
+		} else {
+			if (curY > 0) curY--;
+		}
+		ret = -1;
+	}
+	//そのカーソルが選択不可ならもう一度移動
+	if (!curFlag[curY]) MoveCursorY(menuNum, loop);
+	return ret;
+}
+
+SceneTitle::SceneTitle(int sc) : backScroll(sc)
+{
+	images.push_back(Image::Instance()->Load("title_back")->at(0)); // [0]
+	images.push_back(Image::Instance()->Load("title_tile")->at(0)); // [1]
+	images.push_back(Image::Instance()->Load("logo")->at(0)); // [2]
+	images.push_back(Image::Instance()->Load("title_frame")->at(0)); // [3]
+	images.push_back(Image::Instance()->Load("title_menu")->at(0)); // [4]
+	images.push_back(Image::Instance()->Load("title_btn")->at(0)); // [5]
+	curFlag.resize(4, true);
+	// セーブデータがあるときはカーソル初期位置は"つづきから"
+	if( Save::Instance()->HasSaveData() ) curY = 1;
+	// セーブデータがないときは"つづきから"選択不可
+	else curFlag[1] = false;
+	//curFlag[1] = false;
+	curFlag[2] = false;
+}
+
+Scene * SceneTitle::Update()
+{
+	MoveCursorY(4);
+
+	switch (state) {
+	case 0:
+		if (Bright::Instance()->ChangeBright(255, 30)) {
+			++state;
+		}
+		break;
+	case 1:
+		if (input->Get(INPUT_Z) == 1) {
+			Sound::Instance()->Play("決定");
+			switch (curY) {
+			case 0: // はじめから
+				Save::Instance()->LoadDefaultData();
+				return new SceneStageSelect(backScroll);
+			case 1: // つづきから
+				Save::Instance()->LoadSaveData();
+				return new SceneStageSelect(backScroll);
+			case 2: // 設定
+				return nullptr;
+				//curX = m_cfg.GetWinFlag();
+				//return OPTION;
+			case 3: // 終了
+				return nullptr;
+			}
+		}
+		break;
+	}
+
+	DrawModiGraph(0, 0, WINDOW_WIDTH, 0, 
+		WINDOW_WIDTH, WINDOW_HEIGHT, 0, WINDOW_HEIGHT, images[0], FALSE);
+	int ofs = ++backScroll % 48;
+	for (int x = 0; x < WINDOW_WIDTH / 48 + 1; ++x) {
+		for (int y = 0; y < WINDOW_HEIGHT / 48 + 1; ++y) {
+			DrawGraph(x * 48 - ofs, y * 48 - ofs, images[1], TRUE);
+		}
+	}
+	DrawGraph(0, 0, images[3], TRUE);
+	DrawGraph(120, 40, images[2], TRUE);
+
+	const char* menu_name[] = {
+		{ "はじめから" },
+		{ "つづきから" },
+		{ "設定" },
+		{ "終了" },
+	};
+
+	DWORD col;
+	int sx = 40, sy = 190, dist = 60;
+	for (int i = 0; i < 4; ++i) {
+		DrawGraph(sx + 17, sy + 17 + dist*i, images[4], TRUE);
+		DrawGraph(sx, sy + dist*i, images[5], TRUE);
+		col = (curY == i) ? 0xffffff : 0xaaaaaa;
+		if (!curFlag[i]) col = 0x777777;
+		fonts[0]->DrawFontString(sx + 60, sy + 27 + dist*i, col, menu_name[i]);
+	}
+
+	return this;
+}
+
+// ステージ選択
+SceneStageSelect::SceneStageSelect(int sc) : backScroll(sc)
+{
+	curFlag.resize(STAGE_MAX, true);
+	for (int i = 2; i < STAGE_MAX; ++i) curFlag[i] = false;
+	images.push_back(Image::Instance()->Load("title_back")->at(0)); // [0]
+	images.push_back(Image::Instance()->Load("title_tile")->at(0)); // [1]
+	images.push_back(Image::Instance()->Load("title_frame")->at(1)); // [2]
+	images.push_back(Image::Instance()->Load("title_menu")->at(0)); // [3]
+	images.push_back(Image::Instance()->Load("title_btn")->at(0)); // [4]
+	images.push_back(Image::Instance()->Load("select")->at(0)); // [5]
+	images.push_back(Image::Instance()->Load("select")->at(1)); // [6]
+	images.push_back(Image::Instance()->Load("title_board")->at(1)); // [7]
+	images.push_back(Image::Instance()->Load("title_board")->at(2)); // [8]
+}
+
+Scene* SceneStageSelect::Update()
+{
+	MoveCursorY(STAGE_MAX);
+	switch (state) {
+	case 0:
+		if (Bright::Instance()->ChangeBright(255, 60)) {
+			state++;
+		}
+	case 1:
+		if (input->Get(INPUT_Z) == 1) {
+			Sound::Instance()->Play("決定");
+			state++;
+			stateCnt = 0;
+		}
+		if (input->Get(INPUT_X) == 1) {
+			Sound::Instance()->Play("戻る");
+			return new SceneTitle(backScroll);
+		}
+		break;
+	case 2:
+		if (Bright::Instance()->ChangeBright(0, 60)) {
+			stage = std::make_shared<Stage>();
+			stage->SetStageMapNum(curY, 0);
+			ClearDrawScreen();
+			state++;
+		}
+		break;
+	case 3:
+		Bright::Instance()->ChangeBright(255);
+		DrawString(0, 0, "Now Loading ...", 0xffffff);
+		ScreenFlip();
+		ClearDrawScreen();
+		stage->LoadBGM();
+		Bright::Instance()->ChangeBright(0);
+		return new SceneStageStart(stage);
+	}
+
+	DrawModiGraph(0, 0, WINDOW_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, WINDOW_HEIGHT, images[0], FALSE);
+	int ofs = ++backScroll % 48;
+	for (int x = 0; x < WINDOW_WIDTH / 48 + 1; ++x) {
+		for (int y = 0; y < WINDOW_HEIGHT / 48 + 1; ++y) {
+			DrawGraph(x * 48 - ofs, y * 48 - ofs, images[1], TRUE);
+		}
+	}
+	switch (curY) {
+	case 0: DrawGraph(435, 0, images[5], TRUE); break;
+	case 1: DrawGraph(296, 0, images[6], TRUE); break;
+	}
+
+	DrawGraph(0, 55, images[2], TRUE);
+	DrawGraph(40 + 17, 40 + 17, images[3], TRUE);
+	DrawGraph(40, 40, images[4], TRUE);
+	fonts[0]->DrawFontString(40 + 60, 40 + 27, 0xffffff, "ステージセレクト");
+
+	DrawGraph(410, 280, images[8], TRUE);
+	switch (curY) {
+	case 0:
+		fonts[1]->DrawFontString(420, 290, 0xffffff, "操作説明です。");
+		break;
+	case 1:fonts[1]->DrawFontString(420, 290, 0xffffff, "ハイスコア :");
+		fonts[1]->DrawFontString(420, 310, 0xffffff, "    %d", Save::Instance()->GetHighScore(curY));
+		fonts[1]->DrawFontString(420, 330, 0xffffff, "クリアタイム :");
+		fonts[1]->DrawFontString(420, 350, 0xffffff, "    %s", stage->GetTimerToString(Save::Instance()->GetClearTime(curY)));
+		break;
+	}
+
+	DWORD col;
+	int sx = 80, sy = 120, dist = 45;
+	for (int i = 0; i < STAGE_MAX; i++) {
+		if (i == 2) SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+		DrawGraph(sx - 8, sy - 8 + dist*i, images[7], TRUE);
+		col = (curY == i) ? 0xffffff : 0xaaaaaa;
+		if (curFlag[i]) {
+			fonts[0]->DrawFontString(sx, sy + i*dist, col, "STAGE%d", i);
+		} else {
+			fonts[0]->DrawFontString(sx, sy + i*dist, 0x666666, "---");
+		}
+	}
+
+	return this;
+}
+
+// ポーズ
+ScenePause::ScenePause(std::shared_ptr<Stage> s) : stage(s)
+{
+	curFlag.resize(3, true);
+	images.push_back(Image::Instance()->Load("pause")->at(0)); //[0]
+	images.push_back(Image::Instance()->Load("cross")->at(0)); //[1]
+	images.push_back(Image::Instance()->Load("num")->at(stage->GetStock())); //[2]
+	Sound::Instance()->Play("ポーズ");
+	Sound::Instance()->ChangeVolume(0.25);
+}
+
+Scene * ScenePause::Update()
+{
+	Bright::Instance()->ChangeBright(150);
+	MapChip::Instance()->Draw(*stage->GetCamera());
+	GameEntity::DrawAll();
+	Bright::Instance()->ChangeBright(255);
+
+	MoveCursorY(3);
+
+	switch (curY) {
+	case 0:
+		if (input->Get(INPUT_Z) == 1) {
+			Sound::Instance()->ChangeVolume(4.0);
+			Sound::Instance()->Play("ポーズ");
+			return new SceneGameMain(stage);
+		}
+		break;
+	case 1:
+		if (input->Get(INPUT_Z) == 1) {
+			Sound::Instance()->ChangeVolume(4.0);
+			Sound::Instance()->StopAll();
+			Sound::Instance()->Play("決定");
+			return new SceneTitle();
+		}
+		break;
+	case 2:
+		if (input->Get(INPUT_Z) == 1) {
+			Sound::Instance()->Play("決定");
+			return nullptr;
+		}
+		break;
+	}
+
+	if (input->Get(INPUT_P) == 1) {
+		Sound::Instance()->ChangeVolume(4.0);
+		Sound::Instance()->Play("ポーズ");
+		return new SceneGameMain(stage);
+	}
+
+	const char* pause_menu[] = {
+		{ "ゲームへ戻る" },
+		{ "タイトルへ戻る" },
+		{ "終了" },
+	};
+
+	DWORD col;
+	int sx = 200, sy = 170, dist = 32;
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+	DrawGraph(sx, sy, images[0], TRUE);
+	DrawGraph(WINDOW_WIDTH - 64, WINDOW_HEIGHT - 30, images[1], TRUE);
+	DrawGraph(WINDOW_WIDTH - 64 + 24, WINDOW_HEIGHT - 30 - 16, images[2], TRUE);
+
+	for (int i = 0; i < 3; ++i) {
+		col = (curY == i) ? 0xffffff : 0xaaaaaa;
+		fonts[1]->DrawFontString(sx + 40, sy + 28 + dist*i, col, pause_menu[i]);
+	}
+
+	return this;
+}
