@@ -69,15 +69,6 @@ bool Enemy::IsFix() const {
 	return fix;
 }
 
-int Enemy::GetHP() const
-{
-	return hp;
-}
-
-int Enemy::GetHPMax() const
-{
-	return hpmax;
-}
 
 void Enemy::BlockHit(const Vector2& p, const Vector2& v, int bw, int bh) { }
 void Enemy::BlockHalfHit(const Vector2& p, const Vector2& v, int bw, int bh) { }
@@ -481,7 +472,7 @@ void EnemyStage1Boss::Update() {
 		if (stateCnt == 160) {
 			state = 13;
 			stateCnt = 0;
-			power = 300;
+			power = 260;
 			Create(std::make_shared<EnemyBoss1Unit>(this));
 			Sound::Instance()->Play("ƒ{ƒXU‚è‚¨‚ë‚µ");
 		}
@@ -510,8 +501,8 @@ void EnemyStage1Boss::Update() {
 		}
 		if (stateCnt == 320) {
 			exist = false;
-			//stage.clear = true;
-			//stage.AddStageClearScore(3000);
+			stage->SetClear(true);
+			stage->AddClearScore(3000);
 		}
 		break;
 	}

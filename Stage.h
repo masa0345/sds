@@ -21,6 +21,8 @@ public:
 	void GoNextMap();
 	void LoadBGM();
 	void PlayBGM(bool boss);
+	void ForwardTimer();
+	void AddClearScore(int bonus);
 
 	Camera* GetCamera();
 	std::pair<int, int> GetMapMaxXY() const;
@@ -28,13 +30,23 @@ public:
 	int GetMapNum() const;
 	int GetAreaNum() const;
 	bool GetLoadNext() const;
+	bool GetClear() const;
+	int GetStock() const;
+	int GetScore() const;
+	int GetRank() const;
+	int GetTimer() const;
 	std::shared_ptr<Player> GetPlayer() const;
 	const std::vector<EnemyMapPos>& GetEnemyMapPos() const;
 	const int* GetArea(int mn) const;
+	const char* GetTimerToString(int t) const;
+	const char* GetTimerToString() const;
+
 	void SetStageMapNum(int stg, int map);
 	void SetPlayer(std::shared_ptr<Player> p);
 	void AddScore(int s);
 	void SetLoadNext(bool load);
+	void SetClear(bool c);
+	void SetStock(int s);
 	
 private:
 	std::shared_ptr<Player> player;
@@ -42,8 +54,7 @@ private:
 	bool clear;
 	int timer;
 	int stock;
-	int score, prevScore;
-	int deathCnt;
+	int score;
 	int rank;
 	int stgNum, mapNum, areaNum;
 	int mmx, mmy;

@@ -21,6 +21,8 @@ const int MW = 64, MH = 32;
 const int MMX = 128;
 const int MMY = 64;
 
+const int STAGE_MAX = 6;
+
 extern inline float RandFloat(float r);
 extern inline float RandFloat0(float r);
 extern inline float RandFloat(float min, float max);

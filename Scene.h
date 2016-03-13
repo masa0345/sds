@@ -3,28 +3,6 @@
 #include <vector>
 #include <memory>
 
-//シーンの状態
-/*
-typedef enum GameState {
-	GAME_TITLE_INIT,
-	GAME_TITLE,
-	OPTION,
-	KEY_CONFIG,
-	STAGE_SELECT,
-	STAGE_START,
-	GAME_MAIN,
-	PAUSE,
-	AREA_SCROLL,
-	MOVE_MAP,
-	GAME_OVER,
-	GAME_CLEAR,
-	PLAYER_DEATH,
-	EVENT,
-	MESSAGE,
-	DEBUG_START,
-	GS_ERROR
-};*/
-
 class Scene;
 class JoypadInput;
 class Stage;
@@ -51,7 +29,8 @@ public:
 	virtual Scene* Update() = 0;
 	static void SetInput(std::shared_ptr<JoypadInput> i);
 protected:
-	int state;
+	int state, stateCnt;
+	std::vector<int> images;
 	static std::shared_ptr<JoypadInput> input;
 };
 
@@ -67,7 +46,7 @@ public:
 class SceneStageStart : public Scene
 {
 public:
-	SceneStageStart(int sn, int mn = 0);
+	SceneStageStart(std::shared_ptr<Stage> s);
 	Scene* Update() override;
 private:
 	std::shared_ptr<Stage> stage;
@@ -108,6 +87,26 @@ class SceneEvent : public Scene
 {
 public:
 	SceneEvent(std::shared_ptr<Stage> s);
+	Scene* Update() override;
+private:
+	std::shared_ptr<Stage> stage;
+};
+
+// 自機死亡
+class ScenePlayerDeath : public Scene
+{
+public:
+	ScenePlayerDeath(std::shared_ptr<Stage> s);
+	Scene* Update() override;
+private:
+	std::shared_ptr<Stage> stage;
+};
+
+// ステージクリア
+class SceneStageClear : public Scene
+{
+public:
+	SceneStageClear(std::shared_ptr<Stage> s);
 	Scene* Update() override;
 private:
 	std::shared_ptr<Stage> stage;

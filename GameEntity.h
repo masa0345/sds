@@ -63,6 +63,8 @@ public:
 	inline Priority GetPriority() const;
 	inline int GetWidth() const;
 	inline int GetHeight() const;
+	inline int GetHP() const;
+	inline int GetHPMax() const;
 	virtual Vector2 GetVel() const;
 	virtual bool Targetable() const;
 
@@ -160,6 +162,16 @@ inline int GameEntity::GetHeight() const
 inline int GameEntity::GetWidth() const
 {
 	return width;
+}
+
+inline int GameEntity::GetHP() const
+{
+	return hp;
+}
+
+inline int GameEntity::GetHPMax() const
+{
+	return hpmax;
 }
 
 inline void GameEntity::SetVel(const Vector2& v)

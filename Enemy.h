@@ -18,8 +18,6 @@ public:
 	virtual void BlockHalfHit(const Vector2& p, const Vector2& v, int bw, int bh);
 
 	bool IsFix() const;
-	int GetHP() const;
-	int GetHPMax() const;
 
 protected:
 	void DropItem();

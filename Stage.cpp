@@ -19,17 +19,25 @@ namespace {
 		EnemyMapPos	enemy[ENEMY_LOAD_MAX];
 		unsigned long	map[MMX][MMY];
 	};
+
+	//スコア基準時間
+	const int score_base[] = {
+		0, 15000, 2000, 2000, 2000, 2000,
+	};
+	//ランク基準点
+	const int rank_base[] = {
+		-9999, 13000, 8000, 8000, 8000, 8000,
+	};
 }
 
 
 Stage::Stage() {
-	clear = false;
-	timer = 0;
 	stock = 3;
-	score = prevScore = 0;
-	deathCnt = 0;
-	rank = 0;
+	timer = 0;
+	score = 0;
 	areaNum = 0;
+	rank = 0;
+	clear = false;
 	loadNext = false;
 	enemy.resize(ENEMY_LOAD_MAX);
 }
@@ -134,6 +142,24 @@ void Stage::PlayBGM(bool boss)
 	}
 }
 
+void Stage::ForwardTimer() {
+	if(!clear) ++timer;
+}
+
+//ステージクリア点を加算&ランク算出　ボーナス + クリアタイム + 残りHP - 死亡回数
+void Stage::AddClearScore(int bonus)
+{
+	score += bonus + (score_base[stgNum] - timer) / 2 + player->GetHP() * 3 - 1000 * (3-stock) * 3;
+	if (score < 0) score = 0;
+
+	int mid = score_base[stgNum];
+	if (score > mid + 2999) rank = 0;	// S
+	else if (InRange(mid + 999, score, mid + 3000)) rank = 1; // A
+	else if (InRange(mid - 1001, score, mid + 1000)) rank = 2; // B
+	else if (InRange(mid - 3001, score, mid - 1000)) rank = 3; // C
+	else rank = 4; // D
+}
+
 Camera* Stage::GetCamera() {
 	return &camera;
 }
@@ -158,6 +184,31 @@ bool Stage::GetLoadNext() const {
 	return loadNext;
 }
 
+bool Stage::GetClear() const
+{
+	return clear;
+}
+
+int Stage::GetStock() const
+{
+	return stock;
+}
+
+int Stage::GetScore() const
+{
+	return score;
+}
+
+int Stage::GetRank() const
+{
+	return rank;
+}
+
+int Stage::GetTimer() const
+{
+	return timer;
+}
+
 std::shared_ptr<Player> Stage::GetPlayer() const {
 	return player;
 }
@@ -168,6 +219,24 @@ const std::vector<EnemyMapPos>& Stage::GetEnemyMapPos() const {
 
 const int* Stage::GetArea(int mn) const {
 	return area[mn];
+}
+
+const char * Stage::GetTimerToString(int cnt) const
+{
+	if (cnt < 0) cnt = 0;
+	static char t[16];
+	int m = cnt / 3600;
+	int s = (cnt % 3600) / 60;
+	int ms = (cnt % 60) * 10 / 6;
+
+	sprintf_s(t, "%02d:%02d:%02d", m, s, ms);
+
+	return t;
+}
+
+const char * Stage::GetTimerToString() const
+{
+	return GetTimerToString(timer);
 }
 
 void Stage::SetStageMapNum(int stg, int map) {
@@ -187,4 +256,14 @@ void Stage::AddScore(int s) {
 void Stage::SetLoadNext(bool load)
 {
 	loadNext = load;
+}
+
+void Stage::SetClear(bool c)
+{
+	clear = c;
+}
+
+void Stage::SetStock(int s)
+{
+	stock = s;
 }

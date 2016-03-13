@@ -9,7 +9,13 @@
 #include "Frontend.h"
 #include "MapChip.h"
 #include "Event.h"
+#include "Save.h"
+#include "Font.h"
 #include <DxLib.h>
+
+namespace {
+	std::vector<std::shared_ptr<Font>> fonts;
+}
 
 SceneManager::SceneManager() : gameExit(false)
 {
@@ -50,7 +56,7 @@ void Scene::SetInput(std::shared_ptr<JoypadInput> in) {
 	input = in;
 }
 
-Scene::Scene() : state(0)
+Scene::Scene() : state(0), stateCnt(0)
 {
 }
 
@@ -61,28 +67,69 @@ SceneDebugStart::SceneDebugStart()
 
 Scene* SceneDebugStart::Update()
 {
-	return new SceneStageStart(1, 2);
+	fonts.push_back(std::make_shared<Font>("梅PゴシックC5", 24, 4, "data/font/ume-pgc5.ttf"));
+	fonts.push_back(std::make_shared<Font>("梅PゴシックC5", 16, 3, "data/font/ume-pgc5.ttf", DX_FONTTYPE_ANTIALIASING_EDGE));
+	auto stage = std::make_shared<Stage>();
+	stage->SetStageMapNum(1, 0);
+	stage->LoadBGM();
+	return new SceneStageStart(stage);
 }
 
 // ステージ開始
-SceneStageStart::SceneStageStart(int sn, int mn)
+SceneStageStart::SceneStageStart(std::shared_ptr<Stage> s) : stage(s)
 {
 	GameEntity::InitManager();
 	Frontend::InitManager();
 	auto p = std::make_shared<Player>(input);
-	stage = std::make_shared<Stage>();
 	stage->SetPlayer(p);
-	stage->SetStageMapNum(sn, mn);
 	GameEntity::SetStage(stage);
 	GameEntity::Create(p);
 	stage->LoadStage();
 	stage->PlaceEnemies();
-	stage->LoadBGM();
+	stage->PlayBGM(false);
+	images.push_back(Image::Instance()->Load("stage_name")->at(stage->GetStageNum())); //[0]
+	images.push_back(Image::Instance()->Load("cross")->at(0));	//[1]
+	images.push_back(Image::Instance()->Load("num")->at(stage->GetStock())); //[2]
 }
 
 Scene* SceneStageStart::Update()
 {
-	return new SceneGameMain(stage);
+	MapChip::Instance()->Draw(*stage->GetCamera());
+	GameEntity::DrawAll();
+	Frontend::DrawAll();
+
+	switch (state) {
+	case 0:
+		if (Bright::Instance()->ChangeBright(255, 0)) {
+			++state;
+			stateCnt = 0;
+		}
+		break;
+	case 1:
+		if (stateCnt < 30) {
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, stateCnt * 255 / 60);
+			DrawGraph(150, 120 - (30 - stateCnt), images[0], TRUE);
+			DrawGraph(150, 120 + (30 - stateCnt), images[0], TRUE);
+
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, stateCnt * 255 / 30);
+			DrawGraph(WINDOW_WIDTH - 64, WINDOW_HEIGHT - 30 - (30 - stateCnt), images[1], TRUE);
+			DrawGraph(WINDOW_WIDTH - 64 + 24, WINDOW_HEIGHT - 30 - 16 - (30 - stateCnt), images[2], TRUE);
+		} else if (stateCnt < 40) {
+			DrawGraph(150, 120, images[0], TRUE);
+			DrawGraph(WINDOW_WIDTH - 64, WINDOW_HEIGHT - 30, images[1], TRUE);
+			DrawGraph(WINDOW_WIDTH - 64 + 24, WINDOW_HEIGHT - 30 - 16, images[2], TRUE);
+		} else if (stateCnt < 90) {
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255 - stateCnt * 3);
+			DrawGraph(150, 120, images[0], TRUE);
+			DrawGraph(WINDOW_WIDTH - 64, WINDOW_HEIGHT - 30, images[1], TRUE);
+			DrawGraph(WINDOW_WIDTH - 64 + 24, WINDOW_HEIGHT - 30 - 16, images[2], TRUE);
+		} else {
+			return new SceneGameMain(stage);
+		}
+	}
+	++stateCnt;
+
+	return this;
 }
 
 // ゲームメイン
@@ -90,7 +137,7 @@ SceneGameMain::SceneGameMain(std::shared_ptr<Stage> s) : stage(s)
 {
 }
 
-Scene * SceneGameMain::Update()
+Scene* SceneGameMain::Update()
 {
 	GameEntity::UpdateAll();
 	Frontend::UpdateAll();
@@ -99,11 +146,17 @@ Scene * SceneGameMain::Update()
 	GameEntity::DrawAll();
 	Frontend::DrawAll();
 
+	if (!stage->GetPlayer()->GetExist()) {
+		return new ScenePlayerDeath(stage);
+	}
 	if (stage->CheckAreaScroll()) {
 		return new SceneAreaScroll(stage);
 	}
 	if (stage->GetLoadNext()) {
 		return new SceneMoveMap(stage);
+	}
+	if (stage->GetClear()) {
+		return new SceneStageClear(stage);
 	}
 	if (Event::GetEventFlag()) {
 		return new SceneEvent(stage);
@@ -117,7 +170,7 @@ SceneAreaScroll::SceneAreaScroll(std::shared_ptr<Stage> s) : stage(s)
 {
 }
 
-Scene * SceneAreaScroll::Update()
+Scene* SceneAreaScroll::Update()
 {
 	MapChip::Instance()->Draw(*stage->GetCamera());
 	GameEntity::DrawAll();
@@ -183,7 +236,7 @@ SceneEvent::SceneEvent(std::shared_ptr<Stage> s) : stage(s)
 	input->SetNoInputFlag(true);
 }
 
-Scene * SceneEvent::Update()
+Scene* SceneEvent::Update()
 {
 	GameEntity::UpdateAll();
 	Frontend::UpdateAll();
@@ -200,3 +253,174 @@ Scene * SceneEvent::Update()
 	input->SetNoInputFlag(false);
 	return new SceneGameMain(stage);
 }
+
+// 自機死亡
+ScenePlayerDeath::ScenePlayerDeath(std::shared_ptr<Stage> s) : stage(s)
+{
+}
+
+Scene* ScenePlayerDeath::Update()
+{
+	GameEntity::UpdateAll();
+	Frontend::UpdateAll();
+
+	MapChip::Instance()->Draw(*stage->GetCamera());
+	GameEntity::DrawAll();
+	Frontend::DrawAll();
+
+	int stock = stage->GetStock();
+	switch (state) {
+	case 0:
+		if (stateCnt == 60) {
+			if (stock > 0) {
+				state = 1;
+				stateCnt = 0;
+				stage->SetStock(stock - 1);
+			} else {
+				state = 2;
+				stateCnt = 0;
+			}
+			Sound::Instance()->FadeOut("default", 120);
+		}
+		break;
+	case 1:
+		if (Bright::Instance()->ChangeBright(0, 120)) {
+			return new SceneStageStart(stage);
+		}
+		break;
+	case 2:
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, stateCnt * 255 / 60);
+		DrawGraph(90, 220, Image::Instance()->Load("gameover")->at(0), TRUE);
+		if (stateCnt > 60) {
+			stateCnt = 0;
+			state++;
+		}
+		break;
+	case 3:
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		DrawGraph(90, 220, Image::Instance()->Load("gameover")->at(0), TRUE);
+		if (stateCnt > 120) {
+			stateCnt = 0;
+			state++;
+		}
+		break;
+	case 4:
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		DrawGraph(90, 220, Image::Instance()->Load("gameover")->at(0), TRUE);
+		if (Bright::Instance()->ChangeBright(0, 120)) {
+			Save::Instance()->SaveStageResult(stage);
+			Save::Instance()->SaveScore();
+			//return GAME_TITLE;
+		}
+		break;
+	}
+	++stateCnt;
+
+	return this;
+}
+
+// ステージクリア
+SceneStageClear::SceneStageClear(std::shared_ptr<Stage> s) : stage(s)
+{
+	images.push_back(Image::Instance()->Load("clear")->at(0)); // [0]
+	images.push_back(Image::Instance()->Load("result")->at(0)); // [1]
+	images.push_back(Image::Instance()->Load("rank")->at(0)); // [2]
+	images.push_back(Image::Instance()->Load("rank")->at(1)); // [3]
+	images.push_back(Image::Instance()->Load("rank")->at(2)); // [4]
+	images.push_back(Image::Instance()->Load("rank")->at(3)); // [5]
+	images.push_back(Image::Instance()->Load("rank")->at(4)); // [6]
+}
+
+Scene* SceneStageClear::Update()
+{
+	GameEntity::UpdateAll();
+	Frontend::UpdateAll();
+
+	MapChip::Instance()->Draw(*stage->GetCamera());
+	GameEntity::DrawAll();
+	Frontend::DrawAll();
+
+	int sx = 120, sy = 40;
+	switch (state) {
+	case 0:
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, stateCnt * 255 / 30);
+		DrawGraph(sx, sy, images[0], TRUE);
+		if (stateCnt == 30) {
+			stateCnt = 0;
+			state++;
+		}
+		Save::Instance()->SaveStageResult(stage);
+		Save::Instance()->SaveScore();
+		break;
+	case 1:
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		DrawGraph(sx, sy, images[0], TRUE);
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, stateCnt * 255 / 60);
+		DrawGraph(sx - 20, sy + 60, images[1], TRUE);
+		if (stateCnt == 60) {
+			stateCnt = 0;
+			state++;
+		}
+		break;
+	case 2:
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		DrawGraph(sx, sy, images[0], TRUE);
+		DrawGraph(sx - 20, sy + 60, images[1], TRUE);
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, stateCnt * 255 / 90);
+		fonts[0]->DrawFontString(sx + 250, sy + 108, 0xffffff, "%s", stage->GetTimerToString());
+		if (stateCnt == 90) {
+			stateCnt = 0;
+			state++;
+		}
+		break;
+	case 3:
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		DrawGraph(sx, sy, images[0], TRUE);
+		DrawGraph(sx - 20, sy + 60, images[1], TRUE);
+		fonts[0]->DrawFontString(sx + 250, sy + 108, 0xffffff, "%s", stage->GetTimerToString());
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, stateCnt * 255 / 90);
+		fonts[0]->DrawFontString(sx + 250, sy + 161, 0xffffff, "%d", stateCnt*stage->GetScore() / 90);
+		if (stateCnt == 90) {
+			stateCnt = 0;
+			state++;
+		}
+		break;
+	case 4:
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		DrawGraph(sx, sy, images[0], TRUE);
+		DrawGraph(sx - 20, sy + 60, images[1], TRUE);
+		fonts[0]->DrawFontString(sx + 250, sy + 108, 0xffffff, "%s", stage->GetTimerToString());
+		fonts[0]->DrawFontString(sx + 250, sy + 161, 0xffffff, "%d", stage->GetScore());
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, stateCnt * 255 / 90);
+		DrawGraph(sx + 83, sy + 205, images[2 + stage->GetRank()], TRUE);
+		if (stateCnt == 90) {
+			stateCnt = 0;
+			state++;
+			Sound::Instance()->FadeOut("default", 240);
+		}
+		break;
+	case 5:
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+		DrawGraph(sx, sy, images[0], TRUE);
+		DrawGraph(sx - 20, sy + 60, images[1], TRUE);
+		fonts[0]->DrawFontString(sx + 250, sy + 108, 0xffffff, "%s", stage->GetTimerToString());
+		fonts[0]->DrawFontString(sx + 250, sy + 161, 0xffffff, "%d", stage->GetScore());
+		DrawGraph(sx + 83, sy + 205, images[2 + stage->GetRank()], TRUE);
+
+		if (stateCnt > 120) {
+			if (Bright::Instance()->ChangeBright(0, 120)) {
+				Sound::Instance()->StopAll();
+				//return STAGE_SELECT;
+			}
+		}
+		break;
+	}
+	++stateCnt;
+
+	return this;
+}
+

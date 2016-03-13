@@ -39,8 +39,8 @@ void GameEntity::Draw() const {
 	DrawRotaGraphF(p.x+img->ofs_x, p.y+img->ofs_y, 
 		img->exRate, img->angle, img->hdl->at(img->num), TRUE, (int)dir);
 
-	if (dmgHitbox) dmgHitbox->DrawRect(p, dir, false);
-	if (atkHitbox) atkHitbox->DrawRect(p, dir, true);
+	//if (dmgHitbox) dmgHitbox->DrawRect(p, dir, false);
+	//if (atkHitbox) atkHitbox->DrawRect(p, dir, true);
 }
 
 
@@ -151,6 +151,8 @@ void GameEntity::UpdateAll() {
 	{
 		return a->GetPriority() < b->GetPriority();
 	});
+
+	stage->ForwardTimer();
 }
 
 void GameEntity::DrawAll() {

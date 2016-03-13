@@ -630,6 +630,7 @@ public:
 					atkHitbox->PushBack(hitRect);
 					prev[i] = pos;
 				}
+				dir = RIGHT;
 			}
 			break;
 		case 4: // ƒŒ[ƒU[
