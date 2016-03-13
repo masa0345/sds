@@ -4,6 +4,7 @@
 #include "MapChip.h"
 #include "Enemy.h"
 #include "Block.h"
+#include "Sound.h"
 #include <DxLib.h>
 
 namespace {
@@ -116,6 +117,21 @@ void Stage::GoNextMap() {
 	PlaceEnemies();
 	player->InitState();
 	loadNext = false;
+}
+
+void Stage::LoadBGM()
+{
+	Sound::Instance()->LoadBGM("stage" + std::to_string(stgNum));
+	Sound::Instance()->LoadBGM("boss" + std::to_string(stgNum));
+}
+
+void Stage::PlayBGM(bool boss)
+{
+	if (boss) {
+		Sound::Instance()->Play("boss" + std::to_string(stgNum));
+	} else {
+		Sound::Instance()->Play("stage" + std::to_string(stgNum));
+	}
 }
 
 Camera* Stage::GetCamera() {

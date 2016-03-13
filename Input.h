@@ -37,6 +37,8 @@ public:
 	void	SetPad(Button button, int pad);
 	void	SetKey(Button button, int key);
 	void	SetPadKey(Button button, int pad, int key);
+	void	SetNoInputFlag(bool f);
+	void	SetVirtualInput(Button button, int val);
 	int		GetInputKey() const;
 	const std::string& GetKeyString(int key) const;
 
@@ -46,9 +48,11 @@ public:
 
 private:
 	std::array<int, 32>	state;
+	std::array<int, 32> vstate;
 	std::array<char, BUTTON_NUM>	padmap;
 	std::array<char, BUTTON_NUM>	keymap;
 	int		padnum;
+	bool	noInput;
 	int		inputCnt;		// コマンド入力時間カウンタ
 	int		bufferCnt;		// バッファ維持時間カウンタ
 	std::list<int> buffer;	// カーソルキーの入力履歴

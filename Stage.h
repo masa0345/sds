@@ -19,6 +19,8 @@ public:
 	bool CheckAreaScroll() const;
 	void GoNextArea();
 	void GoNextMap();
+	void LoadBGM();
+	void PlayBGM(bool boss);
 
 	Camera* GetCamera();
 	std::pair<int, int> GetMapMaxXY() const;

@@ -102,3 +102,13 @@ public:
 private:
 	std::shared_ptr<Stage> stage;
 };
+
+// イベントシーン
+class SceneEvent : public Scene
+{
+public:
+	SceneEvent(std::shared_ptr<Stage> s);
+	Scene* Update() override;
+private:
+	std::shared_ptr<Stage> stage;
+};

@@ -300,7 +300,7 @@ void BulletGear::Update() {
 		if (stateCnt == 60) {
 			++state;
 			img->drawflag = false;
-			power = param[GEAR].power * 6;
+			power = param[GEAR].power * 4;
 			Create(std::make_shared<EffectMExplode>(pos));
 			Sound::Instance()->Play("”š”­");
 		}
@@ -400,6 +400,7 @@ public:
 			atkHitbox->PushBack(hitRect);
 			prev[i] = pos;
 		}
+		dir = RIGHT;
 	}
 	void Update() override {
 		switch (state) {

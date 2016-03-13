@@ -23,11 +23,19 @@ public:
 	void SetTarget(std::shared_ptr<GameEntity> target);
 	void SetPos(const Vector2& p);
 
+	void SetDefaultPos();
+	bool EventMove(float x, float y, int t);
+	bool EventMove();
+	bool ReturnDefaultPos(int t);
+	bool ReturnScrollPos(int t);
+
 private:
-	Vector2 pos;
+	bool eventScroll;
+	Vector2 pos, stdPos, defaultPos, dist;
 	std::shared_ptr<GameEntity> target;
 	Rect field;
 	float shakeYVal;
+	int count, time;
 	std::list<Shake*> shake;
 };
 

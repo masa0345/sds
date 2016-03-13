@@ -74,6 +74,7 @@ void FrontendPlayerGauge::Update() {
 	hp = target->hp;
 	mp = target->mp;
 	fire = target->fireCnt;
+	if (hp < 0) hp = 0;
 }
 
 void FrontendPlayerGauge::Draw() const {

@@ -4,32 +4,33 @@
 #include <cmath>
 
 
-Camera::Camera() {
+Camera::Camera() : eventScroll(false), count(0), time(0) {
 	//field = { 0,0,1200,600 };
 }
 
 void Camera::Update() {
-	// スクロール
-	Vector2 tp = target->GetPos();
-	int tw = target->GetWidth(), th = target->GetHeight();
-	const int SCX = 250, SCY = 120;
-	if (tp.x + tw / 2 - pos.x > WINDOW_WIDTH - SCX) {
-		pos.x = tp.x + tw / 2 - (WINDOW_WIDTH - SCX);
-	} else if (tp.x - tw / 2 - pos.x<SCX) {
-		pos.x = tp.x -tw / 2 - SCX;
-	}
-	if (tp.y + th / 2 - pos.y > WINDOW_HEIGHT - SCY) {
-		pos.y = tp.y + th / 2 - (WINDOW_HEIGHT - SCY);
-	} else if (tp.y - th / 2 - pos.y < SCY) {
-		pos.y = tp.y - th / 2 - SCY;
-	}
+	if (!eventScroll) {
+		// スクロール
+		Vector2 tp = target->GetPos();
+		int tw = target->GetWidth(), th = target->GetHeight();
+		const int SCX = 250, SCY = 120;
+		if (tp.x + tw / 2 - pos.x > WINDOW_WIDTH - SCX) {
+			pos.x = tp.x + tw / 2 - (WINDOW_WIDTH - SCX);
+		} else if (tp.x - tw / 2 - pos.x < SCX) {
+			pos.x = tp.x - tw / 2 - SCX;
+		}
+		if (tp.y + th / 2 - pos.y > WINDOW_HEIGHT - SCY) {
+			pos.y = tp.y + th / 2 - (WINDOW_HEIGHT - SCY);
+		} else if (tp.y - th / 2 - pos.y < SCY) {
+			pos.y = tp.y - th / 2 - SCY;
+		}
 
-	//端まできたらスクロールしない
-	if (pos.x < field.left)  pos.x = (float)field.left;
-	if (pos.x > field.right - WINDOW_WIDTH) pos.x = (float)field.right - WINDOW_WIDTH;
-	if (pos.y < field.top)  pos.y = (float)field.top;
-	if (pos.y > field.bottom - WINDOW_HEIGHT) pos.y = (float)field.bottom - WINDOW_HEIGHT;
-	
+		//端まできたらスクロールしない
+		if (pos.x < field.left)  pos.x = (float)field.left;
+		if (pos.x > field.right - WINDOW_WIDTH) pos.x = (float)field.right - WINDOW_WIDTH;
+		if (pos.y < field.top)  pos.y = (float)field.top;
+		if (pos.y > field.bottom - WINDOW_HEIGHT) pos.y = (float)field.bottom - WINDOW_HEIGHT;
+	}
 
 	// 振動
 	float f;
@@ -93,7 +94,60 @@ void Camera::SetPos(const Vector2& p) {
 	pos = p;
 }
 
+void Camera::SetDefaultPos()
+{
+	defaultPos = stdPos = pos;
+}
 
+bool Camera::EventMove(float x, float y, int t)
+{
+	if (eventScroll) return EventMove();
+
+	if (t <= 0) t = 1;
+	dist = { x, y };
+	time = t;
+	count = 0;
+	eventScroll = true;
+
+	return false;
+}
+
+bool Camera::ReturnDefaultPos(int t)
+{
+	return EventMove(defaultPos.x - pos.x, defaultPos.y - pos.y, t);
+}
+
+bool Camera::ReturnScrollPos(int t)
+{
+	if (eventScroll) return EventMove();
+
+	Vector2 cur = pos;
+	Update();
+	if (t <= 0) t = 1;
+	dist = pos - cur;
+	time = t;
+	count = 0;
+	eventScroll = true;
+	pos = cur;
+
+	return false;
+}
+
+bool Camera::EventMove()
+{
+	if (!eventScroll) return false;
+
+	if (count == time) {
+		pos = stdPos + dist;
+		stdPos = pos;
+		eventScroll = false;
+		return true;
+	}
+	pos.x = stdPos.x + (sinf(-PI / 2.f + PI / time * count) + 1) * dist.x / 2.f;
+	pos.y = stdPos.y + (sinf(-PI / 2.f + PI / time * count) + 1) * dist.y / 2.f;
+	++count;
+	return false;
+}
 
 
 Shake::Shake(float ampl, float freq, int duration, int damp) :

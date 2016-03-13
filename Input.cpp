@@ -148,9 +148,10 @@ namespace
 }
 
 JoypadInput::JoypadInput(int padnum) :
-	padnum(padnum), inputCnt(0), bufferCnt(0)
+	padnum(padnum), inputCnt(0), bufferCnt(0), noInput(false)
 {
 	state.fill(0);
+	vstate.fill(0);
 	SetPadKey(INPUT_DOWN, PAD_INPUT_DOWN, KEY_INPUT_DOWN);
 	SetPadKey(INPUT_LEFT, PAD_INPUT_LEFT, KEY_INPUT_LEFT);
 	SetPadKey(INPUT_RIGHT, PAD_INPUT_RIGHT, KEY_INPUT_RIGHT);
@@ -233,6 +234,7 @@ void JoypadInput::Update()
 
 int JoypadInput::Get(Button pad) const
 {
+	if (noInput) return vstate[padmap[pad]];
 	return state[padmap[pad]];
 }
 
@@ -258,6 +260,16 @@ void JoypadInput::SetPadKey(Button button, int pad, int key)
 	padmap[button] = intlog2(pad);
 	keymap[button] = key;
 	SetJoypadInputToKeyInput(padnum, pad, key);
+}
+
+void JoypadInput::SetNoInputFlag(bool f)
+{
+	noInput = f;
+}
+
+void JoypadInput::SetVirtualInput(Button button, int val)
+{
+	if(noInput) vstate[padmap[button]] = val;
 }
 
 int JoypadInput::GetInputKey() const

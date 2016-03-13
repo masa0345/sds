@@ -158,6 +158,7 @@
     <ClCompile Include="DebugDraw.cpp" />
     <ClCompile Include="Effect.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Event.cpp" />
     <ClCompile Include="Frontend.cpp" />
     <ClCompile Include="GameEntity.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="Effect.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="Event.h" />
     <ClInclude Include="Frontend.h" />
     <ClInclude Include="GameEntity.h" />
     <ClInclude Include="Image.h" />

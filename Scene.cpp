@@ -8,6 +8,7 @@
 #include "Player.h"
 #include "Frontend.h"
 #include "MapChip.h"
+#include "Event.h"
 #include <DxLib.h>
 
 SceneManager::SceneManager() : gameExit(false)
@@ -76,6 +77,7 @@ SceneStageStart::SceneStageStart(int sn, int mn)
 	GameEntity::Create(p);
 	stage->LoadStage();
 	stage->PlaceEnemies();
+	stage->LoadBGM();
 }
 
 Scene* SceneStageStart::Update()
@@ -102,6 +104,9 @@ Scene * SceneGameMain::Update()
 	}
 	if (stage->GetLoadNext()) {
 		return new SceneMoveMap(stage);
+	}
+	if (Event::GetEventFlag()) {
+		return new SceneEvent(stage);
 	}
 
 	return this;
@@ -170,4 +175,28 @@ Scene* SceneMoveMap::Update()
 		break;
 	}
 	return this;
+}
+
+// イベントシーン
+SceneEvent::SceneEvent(std::shared_ptr<Stage> s) : stage(s)
+{
+	input->SetNoInputFlag(true);
+}
+
+Scene * SceneEvent::Update()
+{
+	GameEntity::UpdateAll();
+	Frontend::UpdateAll();
+
+	MapChip::Instance()->Draw(*stage->GetCamera());
+	GameEntity::DrawAll();
+	Frontend::DrawAll();
+
+	if (Event::GetEventFlag()) {
+		Event::curEvent->Update();
+		return this;
+	}
+
+	input->SetNoInputFlag(false);
+	return new SceneGameMain(stage);
 }

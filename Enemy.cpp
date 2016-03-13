@@ -8,6 +8,7 @@
 #include "Player.h"
 #include "MapChip.h"
 #include "Frontend.h"
+#include "Event.h"
 #include <DxLib.h>
 #include <unordered_map>
 
@@ -346,7 +347,7 @@ EnemyStage1Boss::EnemyStage1Boss() {
 	dmgHitbox = std::make_shared<HitBox>(width, height);
 	dropRate = 0;
 	itemNum = 0;
-	hp = hpmax = 3600;
+	hp = hpmax = 4200;
 	fix = true;
 	target = false;
 	invincible = 1;
@@ -359,10 +360,12 @@ void EnemyStage1Boss::Update() {
 	switch (state) {
 	case 0: // イベント開始
 		if (DistSqGameEntity(stage->GetPlayer()) < 600 * 600) {
+			Event::SetEvent(std::make_shared<EventStage1Boss>(stage, this));
 			++state;
 		}
 		break;
 	case 1: // イベント待機
+		if (Event::GetEventFlag()) break;
 		target = true;
 		invincible = 0;
 		img->drawflag = true;
@@ -390,7 +393,7 @@ void EnemyStage1Boss::Update() {
 		img->num = 2;
 		if (dir) vel.x = -18;
 		else vel.x = 18;
-		power = 150;
+		power = 180;
 		state++;
 		Sound::Instance()->Play("ボスダッシュ");
 		break;
@@ -447,7 +450,7 @@ void EnemyStage1Boss::Update() {
 	case 9: //降下
 		img->num = 5;
 		vel.y = 20;
-		power = 340;
+		power = 440;
 		if (stateCnt > 25) {
 			state = 10;
 			stateCnt = 0;
@@ -478,7 +481,7 @@ void EnemyStage1Boss::Update() {
 		if (stateCnt == 160) {
 			state = 13;
 			stateCnt = 0;
-			power = 220;
+			power = 300;
 			Create(std::make_shared<EnemyBoss1Unit>(this));
 			Sound::Instance()->Play("ボス振りおろし");
 		}
@@ -539,7 +542,7 @@ EnemyBoss1Unit::EnemyBoss1Unit(Enemy* p) : parent(p)
 	height = 40;
 	dmgHitbox = std::make_shared<HitBox>(width, height);
 	atkHitbox = std::make_shared<HitBox>(width, height);
-	hp = hpmax = 80;
+	hp = hpmax = 50;
 	invincible = 1;
 	itemNum = 20;
 	dropRate = 100;

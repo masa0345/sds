@@ -12,6 +12,7 @@ public:
 	virtual bool UpdatePre() override;
 	virtual void Update() override;
 	virtual void UpdatePosition() override;
+	virtual void Draw() const override;
 	virtual void DamageFrom(GameEntity*) override;
 
 protected:
@@ -108,4 +109,12 @@ class EffectFlushExplode : public Effect
 {
 public:
 	EffectFlushExplode(const Vector2& p);
+};
+
+// WARNING
+class EffectWarning : public Effect
+{
+public:
+	EffectWarning();
+	void Update() override;
 };

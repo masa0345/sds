@@ -44,6 +44,11 @@ void Effect::UpdatePosition() {
 	}
 }
 
+void Effect::Draw() const
+{
+	if (stateCnt > -1) GameEntity::Draw();
+}
+
 void Effect::DamageFrom(GameEntity* e) {
 }
 
@@ -474,4 +479,25 @@ EffectFlushExplode::EffectFlushExplode(const Vector2 & p) : Effect(p)
 	Create(std::make_shared<EffectFlushExplodePart2>(p));
 	Sound::Instance()->Play("ƒ{ƒX”š”­");
 	exist = false;
+}
+
+// WARNING
+EffectWarning::EffectWarning() : Effect(pos)
+{
+	Vector2 cp = stage->GetCamera()->GetPos();
+	pos.x = WINDOW_WIDTH / 2.f + cp.x;
+	pos.y = WINDOW_HEIGHT / 2.f + cp.y;
+	maxcnt = 170;
+	img->hdl = Image::Instance()->Load("warning");
+	img->blendmode = DX_BLENDMODE_ADD;
+	priority = Priority::FRONT_EFFECT;
+	Sound::Instance()->Play("warning");
+}
+
+void EffectWarning::Update()
+{
+	Vector2 cp = stage->GetCamera()->GetPos();
+	pos.x = WINDOW_WIDTH / 2.f + cp.x;
+	pos.y = WINDOW_HEIGHT / 2.f + cp.y;
+	img->alpha = 55 + (int)(200.f * sinf(PI / 30.f * stateCnt));
 }

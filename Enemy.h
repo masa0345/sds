@@ -2,8 +2,6 @@
 
 #include "GameEntity.h"
 
-//enum BulletType;
-
 class Enemy : public GameEntity
 {
 public:
@@ -64,6 +62,7 @@ public:
 // É{ÉX1
 class EnemyStage1Boss : public Enemy
 {
+	friend class EventStage1Boss;
 public:
 	EnemyStage1Boss();
 	void Update() override;
