@@ -300,12 +300,12 @@ void BulletGear::Update() {
 		if (stateCnt == 60) {
 			++state;
 			img->drawflag = false;
+			power = param[GEAR].power * 6;
 			Create(std::make_shared<EffectMExplode>(pos));
 			Sound::Instance()->Play("”š”­");
 		}
 		break;
 	case 2:
-		power = param[GEAR].power * 6;
 		if (66 < stateCnt && stateCnt < 76) {
 			width += 8;
 			height += 8;

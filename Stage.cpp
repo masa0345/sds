@@ -87,7 +87,7 @@ void Stage::PlaceEnemies() {
 			case 6: o = GameEntity::Create(std::make_shared<BlockRotaLiftL>()); break;
 			case 7: o = GameEntity::Create(std::make_shared<BlockNextMapGate>()); break;
 			case 8: o = GameEntity::Create(std::make_shared<BlockBreakable>()); break;
-			case 9: o = GameEntity::Create(std::make_shared<BlockBreakable>()); break;
+			case 9: o = GameEntity::Create(std::make_shared<EnemyStage1Boss>()); break;
 			}
 			if (o) {
 				o->SetPos({ e.x*MW + o->GetWidth()/2, e.y*MH + o->GetHeight()/2 });
@@ -97,7 +97,6 @@ void Stage::PlaceEnemies() {
 }
 
 bool Stage::CheckAreaScroll() const {
-	DebugDraw::String(0, 0, 0xffffff, "%.0f %d %d", player->GetPos().x, area[areaNum][2] * MW, areaNum);
 	return (area[areaNum][4] == 0 && player->GetPos().x > area[areaNum][2] * MW) ||
 		(area[areaNum][4] == 1 && player->GetPos().x < area[areaNum][0] * MW + MW);
 }

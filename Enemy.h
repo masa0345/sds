@@ -14,11 +14,14 @@ public:
 	virtual void UpdateLate() override;
 	virtual void DamageFrom(GameEntity*) override;
 	virtual void SetDamage(Player* p) override;
+	virtual bool Targetable() const override;
 
 	virtual void BlockHit(const Vector2& p, const Vector2& v, int bw, int bh);
 	virtual void BlockHalfHit(const Vector2& p, const Vector2& v, int bw, int bh);
 
 	bool IsFix() const;
+	int GetHP() const;
+	int GetHPMax() const;
 
 protected:
 	void DropItem();
@@ -58,7 +61,26 @@ public:
 	void BlockHalfHit(const Vector2& p, const Vector2& v, int bw, int bh) override;
 };
 
+// É{ÉX1
+class EnemyStage1Boss : public Enemy
+{
+public:
+	EnemyStage1Boss();
+	void Update() override;
+	void UpdateLate() override;
+private:
+	float mem_y;
+};
 
+class EnemyBoss1Unit : public Enemy
+{
+public:
+	EnemyBoss1Unit(Enemy* p);
+	void Update() override;
+	void SetDamage(Player* p) override;
+private:
+	Enemy* parent;
+};
 
 
 

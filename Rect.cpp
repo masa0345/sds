@@ -144,11 +144,13 @@ const Rect* HitBox::GetRects() const
 	return rects;
 }
 
-bool HitBox::CheckHitRects(const HitBox& o, const Vector2& p, const Vector2& op)
+bool HitBox::CheckHitRects(const HitBox& o, const Vector2& p, const Vector2& op, bool d, bool od)
 {
 	for (int i = 0; i < size; ++i) {
 		for (int j = 0; j < o.size; ++j) {
-			if ((rects[i] + p).CheckHit(o.rects[j] + op)) return true;
+			Rect my = d ? rects[i].TurnH() : rects[i];
+			Rect ot = od ? o.rects[j].TurnH() : o.rects[j];
+			if ((my + p).CheckHit(ot + op)) return true;
 		}
 	}
 	return false;
@@ -159,6 +161,10 @@ void HitBox::DrawRect(const Vector2& pos, int dir, bool atk)
 {
 	unsigned color = atk ? 0xff0000 : 0x0000ff;
 	for (int i = 0; i < size; ++i) {
-		DebugDraw::RectBox(rects[i]+pos, color, false);
+		if (dir) {
+			DebugDraw::RectBox(rects[i].TurnH() + pos, color, false);
+		} else {
+			DebugDraw::RectBox(rects[i] + pos, color, false);
+		}
 	}
 }

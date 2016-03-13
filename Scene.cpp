@@ -60,7 +60,7 @@ SceneDebugStart::SceneDebugStart()
 
 Scene* SceneDebugStart::Update()
 {
-	return new SceneStageStart(1, 0);
+	return new SceneStageStart(1, 2);
 }
 
 // ステージ開始

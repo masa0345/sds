@@ -2,6 +2,8 @@
 #include "Image.h"
 #include "Projectile.h"
 #include "common.h"
+#include "Sound.h"
+#include "Stage.h"
 #include <DxLib.h>
 #include <cmath>
 
@@ -19,9 +21,9 @@ bool Effect::UpdatePre() {
 	GameEntity::UpdatePre();
 	if (stateCnt < 0) {
 		stateCnt++;
-		return false;
+		return true;
 	}
-	if (stateCnt >= maxcnt) exist = false;
+	if (maxcnt > -1 && stateCnt == maxcnt) exist = false;
 	return !exist;
 }
 
@@ -231,7 +233,7 @@ public:
 	}
 	void Update() override {
 		v -= decScale / maxcnt;
-		img->exRate += 0.03f + 0.005f*decScale;
+		img->exRate += 0.03f - 0.005f*decScale;
 		img->alpha = (int)(255.f * (maxcnt - stateCnt) / maxcnt);
 	}
 private:
@@ -412,5 +414,64 @@ EffectNextGate::EffectNextGate(const Vector2& p) : Effect(p)
 	Create(std::make_shared<EffectNextGatePart1>(pos));
 	Create(std::make_shared<EffectNextGatePart2>(pos));
 	Create(std::make_shared<EffectNextGatePart3>(pos));
+	exist = false;
+}
+
+// ボス撃破
+class EffectFlushExplodePart1 : public Effect
+{
+public:
+	EffectFlushExplodePart1(const Vector2& p, int i) : Effect(p) {
+		float r = 600.f;
+		maxcnt = 120;
+		pos.x += r * cosf(PI2 / 24.f * i);
+		pos.y += r * sinf(PI2 / 24.f * i);
+		v = r / maxcnt;
+		rad_v = (p - pos).Angle();
+		img->hdl = Image::Instance()->Load("wspear");
+		img->angle = rad_v;
+		img->blendmode = DX_BLENDMODE_ADD;
+		img->exRate = 2.f;
+		priority = Priority::FRONT_EFFECT;
+	}
+	void Update() override {
+		img->exRate = 0.5f + (1.5f * (maxcnt - stateCnt)) / maxcnt;
+		img->alpha = 127 + (128 * (maxcnt - stateCnt)) / maxcnt;
+	}
+};
+class EffectFlushExplodePart2 : public Effect
+{
+public:
+	EffectFlushExplodePart2(const Vector2& p) : Effect(p) {
+		stateCnt = -120;
+		maxcnt = 600;
+		img->hdl = Image::Instance()->Load("white");
+		img->blendmode = DX_BLENDMODE_ADD;
+		img->exRate = 0.1f;
+		priority = Priority::FRONT_EFFECT;
+	}
+	void Update() override {
+		switch (state) {
+		case 0:
+			printfDx("%d", stateCnt);
+			img->exRate *= 1.4f;
+			if (stateCnt == 0) Sound::Instance()->Play("ボス爆発2");
+			if (stateCnt == 30) {
+				++state;
+				stage->GetCamera()->SetShake(20.f, 75.f, 100, 80);
+			}
+			break;
+		case 1:
+			img->exRate = 1000.f;
+			if (--img->alpha == 0) exist = false;
+		}
+	}
+};
+EffectFlushExplode::EffectFlushExplode(const Vector2 & p) : Effect(p)
+{
+	for (int i = 0; i < 24; ++i)
+		Create(std::make_shared<EffectFlushExplodePart1>(p, i));
+	Create(std::make_shared<EffectFlushExplodePart2>(p));
+	Sound::Instance()->Play("ボス爆発");
 	exist = false;
 }

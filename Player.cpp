@@ -105,9 +105,10 @@ void Player::Update()
 	dmgHitbox->SetRect(0, playerhit[img->num / 6]);
 
 	if (input->Get(INPUT_D) == 1) {
-		//auto o = Create(std::make_shared<ItemWeapon>(pos, GEAR));
-		//o->SetPos({ pos.x, pos.y - 100.f });
-		stage->SetLoadNext(true);
+		auto o = Create(std::make_shared<ItemWeapon>(pos, GEAR));
+		o->SetPos({ pos.x, pos.y - 100.f });
+		//stage->SetLoadNext(true);
+		//Create(std::make_shared<EffectMExplode>(pos));
 	}
 }
 

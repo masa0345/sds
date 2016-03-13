@@ -50,3 +50,13 @@ private:
 	const int HP_HEIGHT = 12;
 	const int MP_HEIGHT = 8;
 };
+
+class FrontendBossGauge : public Frontend
+{
+public:
+	FrontendBossGauge(Enemy* e);
+	virtual void Update();
+	virtual void Draw() const;
+private:
+	Enemy* target;
+};

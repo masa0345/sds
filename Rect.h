@@ -45,7 +45,7 @@ public:
 	int			Size() const;				// size‚ð•Ô‚·
 	const Rect* GetRects() const;			// “–‚½‚è”»’è”z—ñ‚ð“¾‚é
 	bool		CheckHitRects(const HitBox& other, 
-					const Vector2& pos, const Vector2& otherpos);
+					const Vector2& pos, const Vector2& otherpos, bool dir, bool otherdir);
 	void		DrawRect(const Vector2& pos, int dir, bool atk);
 
 private:

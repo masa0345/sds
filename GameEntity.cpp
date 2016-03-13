@@ -81,7 +81,7 @@ bool GameEntity::CheckDamageFrom(const GameEntity& e) const {
 		Rect r(-width / 2, -height / 2, width / 2, height / 2);
 		return (e.atkHitbox->GetRects()[0] + e.pos).CheckHit(r+pos);
 	}
-	return e.atkHitbox->CheckHitRects(*dmgHitbox, e.pos, pos);
+	return e.atkHitbox->CheckHitRects(*dmgHitbox, e.pos, pos, e.dir, dir);
 }
 
 float GameEntity::DistSqGameEntity(std::shared_ptr<GameEntity> e) const {

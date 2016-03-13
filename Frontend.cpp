@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "common.h"
 #include "Projectile.h"
+#include "Enemy.h"
 #include <DxLib.h>
 
 std::list<std::shared_ptr<Frontend>> Frontend::manager;
@@ -50,7 +51,7 @@ void Frontend::DrawAll()
 }
 
 
-
+// 自機ゲージ
 FrontendPlayerGauge::FrontendPlayerGauge(Player* p) {
 	SetTarget(p);
 	type = STAR;
@@ -114,4 +115,28 @@ void FrontendPlayerGauge::Draw() const {
 
 void FrontendPlayerGauge::SetTarget(Player* p) {
 	target = p;
+}
+
+
+// ボスゲージ
+FrontendBossGauge::FrontendBossGauge(Enemy * e) : target(e)
+{
+}
+
+void FrontendBossGauge::Update()
+{
+	if (!target) return;
+	if (!target->GetExist()) {
+		target = nullptr;
+		exist = false;
+	}
+}
+
+void FrontendBossGauge::Draw() const
+{
+	if (!target || !target->GetExist()) return;
+	int hpw = 490 * target->GetHP() / target->GetHPMax();
+	DrawGraph(70, 40, Image::Instance()->Load("boss_gauge")->at(0), FALSE);
+	DrawModiGraph(75, 46, 75 + hpw, 46, 75 + hpw, 46 + 24, 75, 46 + 24,
+		Image::Instance()->Load("boss_meter")->at(0), FALSE);
 }

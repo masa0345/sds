@@ -102,3 +102,10 @@ class EffectNextGate : public Effect
 public:
 	EffectNextGate(const Vector2& p);
 };
+
+// ƒ{ƒXŒ‚”j
+class EffectFlushExplode : public Effect
+{
+public:
+	EffectFlushExplode(const Vector2& p);
+};
