@@ -31,7 +31,7 @@ public:
 	~JoypadInput();
 
 	void	Update();
-	int		Get(Button pad) const;
+	int		Get(Button pad, bool ignore = false) const;
 	int		GetPadNum() const;
 
 	void	SetPad(Button button, int pad);

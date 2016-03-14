@@ -232,9 +232,9 @@ void JoypadInput::Update()
 #endif
 }
 
-int JoypadInput::Get(Button pad) const
+int JoypadInput::Get(Button pad, bool ignore) const
 {
-	if (noInput) return vstate[padmap[pad]];
+	if (noInput && !ignore) return vstate[padmap[pad]];
 	return state[padmap[pad]];
 }
 

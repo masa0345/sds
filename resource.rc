@@ -1,0 +1,26 @@
+#include "resource.h"
+
+ICON_ID ICON "sdicon.ico"
+
+1 VERSIONINFO
+FILEVERSION     1,0,0,0 //ファイルバージョン
+PRODUCTVERSION  1,0,0,0 //製品のバージョン。基本的に上と同じで良いはず。使われてるかなこれ？
+FILEFLAGSMASK   0x00000000L
+FILEFLAGS       0x00000000L
+{
+    BLOCK "StringFileInfo"
+    {                
+        BLOCK "041104B0"
+        {//\0は必ず最後につけること
+            VALUE "FileVersion",      "0.12\0";//ファイルバージョン。
+            VALUE "InternalName",     "\0";//何を指定すればいいかはよく分からない。
+            VALUE "LegalCopyright",   "Copyright (C) 2012 電気通信大学 X680x0同好会\0"
+            VALUE "OriginalFilename", "stardust.exe\0";//配布するときにつけるファイル名
+            VALUE "ProductVersion",   "1.0\0";//ファイルバージョンと一緒でいいかと
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0411, 1200
+    }
+}

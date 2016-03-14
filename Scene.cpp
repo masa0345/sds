@@ -42,7 +42,7 @@ void SceneManager::Update()
 		delete scene;
 		scene = ns;
 	}
-	if (input->Get(INPUT_ESC) == 1 || scene == nullptr) gameExit = true;
+	if (input->Get(INPUT_ESC, true) == 1 || scene == nullptr) gameExit = true;
 }
 
 bool SceneManager::GetGameExit() const
@@ -147,7 +147,7 @@ Scene* SceneStageStart::Update()
 
 	switch (state) {
 	case 0:
-		if (Bright::Instance()->ChangeBright(255, 0)) {
+		if (Bright::Instance()->ChangeBright(255, 30)) {
 			++state;
 			stateCnt = 0;
 		}
