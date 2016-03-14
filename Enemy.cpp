@@ -9,6 +9,7 @@
 #include "MapChip.h"
 #include "Frontend.h"
 #include "Event.h"
+#include "Message.h"
 #include <DxLib.h>
 #include <unordered_map>
 
@@ -591,5 +592,176 @@ void EnemyBoss1Unit::SetDamage(Player * p)
 	case 2:
 		p->CalcDamage(power);
 		break;
+	}
+}
+
+// チュートリアル
+class EnemyGuidUnit1 : public Enemy
+{
+public:
+	EnemyGuidUnit1(EnemyGuide* g, const Vector2& p, int itemtype) {
+		pos = p;
+		guide = g;
+		width = 48;
+		height = 48;
+		dmgHitbox = std::make_shared<HitBox>(width, height);
+		hp = hpmax = 180;
+		dir = LEFT;
+		dropRate = 100;
+		itemNum = 0;
+		dropType = itemtype;
+		img->hdl = Image::Instance()->Load("enemy2");
+	}
+	void Update() override {
+		img->num = (stateCnt / 2) % 4;
+		vel.y = -sinf(PI2 / 120.f * (stateCnt % 360)) * 2.f;
+	}
+	void UpdateLate() override {
+		if (hp <= 0) guide->AddKillCount();
+		Enemy::UpdateLate();
+	}
+private:
+	EnemyGuide* guide;
+};
+class EnemyGuidUnit2 : public Enemy
+{
+public:
+	EnemyGuidUnit2(EnemyGuide* g, int i, int itemtype) {
+		stateCnt = 20 * i;
+		pos.x = 2800.f + 200.f * i;
+		pos.y = 600.f + 80.f * sinf(PI2 / 240.f * stateCnt);
+		guide = g;
+		width = 48;
+		height = 48;
+		dmgHitbox = std::make_shared<HitBox>(width, height);
+		hp = hpmax = 220;
+		dir = LEFT;
+		dropRate = 100;
+		itemNum = 0;
+		dropType = itemtype;
+		img->hdl = Image::Instance()->Load("enemy2");
+	}
+	void Update() override {
+		img->num = (stateCnt / 2) % 4;
+		pos.y = 600.f + 80.f * sinf(PI2 / 240.f * stateCnt);
+	}
+	void UpdateLate() override {
+		if (hp <= 0) guide->AddKillCount();
+		Enemy::UpdateLate();
+	}
+private:
+	EnemyGuide* guide;
+};
+EnemyGuide::EnemyGuide() : killCnt(0)
+{
+	target = false;
+	player = stage->GetPlayer();
+	Event::SetEvent(std::make_shared<EventMessage>(stage, "guide1"));
+	img->hdl = Image::Instance()->Load("guide");
+	img->blendmode = DX_BLENDMODE_ALPHA;
+	priority = Priority::BACK_EFFECT;
+}
+
+void EnemyGuide::Update()
+{
+	Vector2 ep;
+	switch (state) {
+	case 0:
+		pos = { WINDOW_WIDTH - 50.f, WINDOW_HEIGHT / 2.f };
+		img->alpha = 55 + (int)(200.f * sinf(PI / 60 * stateCnt));
+		if (player->GetPos().x > 2000.f) {
+			// 進むと攻撃の説明
+			Event::SetEvent(std::make_shared<EventMessage>(stage, "guide2"));
+			pos = { WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f - 100.f };
+			img->num = 1;
+			img->alpha = 200;
+			++state; stateCnt = 0;
+		}
+		break;
+	case 1: // 説明が終わると敵出現
+		if (Event::GetEventFlag()) break;
+		ep = player->GetPos();
+		ep.x += 200.f;
+		Create(std::make_shared<EnemyGuidUnit1>(this, ep, METEOR));
+		++state; stateCnt = 0;
+		break;
+	case 2: 
+		if (killCnt == 1) {
+			// 倒すと武器ドロップの説明
+			Event::SetEvent(std::make_shared<EventMessage>(stage, "guide3"));
+			img->num = 2;
+			++state; stateCnt = 0;
+			killCnt = 0;
+		}
+		break;
+	case 3: 
+		if (player->GetBulletType() != STAR) {
+			// アイテムを捨てる説明
+			Event::SetEvent(std::make_shared<EventMessage>(stage, "guide4"));
+			img->num = 3;
+			++state; stateCnt = 0;
+		}
+		if (stateCnt > 1200) {
+			ep = player->GetPos();
+			ep.x += 200.f;
+			Create(std::make_shared<EnemyGuidUnit1>(this, ep, METEOR));
+			stateCnt = 0;
+		}
+		break;
+	case 4: // 捨てるまで待機
+		if (player->GetBulletType() == STAR) {
+			++state; stateCnt = 0;
+		}
+		break;
+	case 5:
+		if (stateCnt == 60) {
+			// 敵出現
+			img->num = 4;
+			GameEntity::RemoveAll(ITEM);
+			Event::SetEvent(std::make_shared<EventGuideSpawnEnemy>(stage, this));
+			++state; stateCnt = 0;
+		}
+		break;
+	case 6: // 強化武器取得
+		if (player->GetBulletType() == CHASER_AD && killCnt == 5) {
+			++state; stateCnt = 0;
+		} else if (stateCnt > 2000 && killCnt == 5) {
+			CreateSampleEnemies();
+			killCnt = 0;
+			stateCnt = 0;
+		}
+		break;
+	case 7: // チュートリアル終了
+		if (stateCnt == 120) {
+			img->drawflag = false;
+			Event::SetEvent(std::make_shared<EventMessage>(stage, "guide6"));
+			++state; stateCnt = 0;
+		}
+		break;
+	case 8:
+		if (stateCnt == 80) {
+			stage->SetClear(true);
+		}
+		break;
+	}
+}
+
+void EnemyGuide::Draw() const
+{
+	if (Event::GetEventFlag() || !img->drawflag) return;
+	SetDrawBlendMode(img->blendmode, img->alpha);
+	DrawRotaGraphF(pos.x + img->ofs_x, pos.y + img->ofs_y,
+		img->exRate, img->angle, img->hdl->at(img->num), TRUE, (int)dir);
+}
+
+void EnemyGuide::AddKillCount()
+{
+	++killCnt;
+}
+
+void EnemyGuide::CreateSampleEnemies()
+{
+	for (int i = 0; i < 5; ++i) {
+		Create(std::make_shared<EnemyGuidUnit2>(this, i, CHASER));
 	}
 }

@@ -8,10 +8,12 @@
 #include "Stage.h"
 #include "Input.h"
 #include "Effect.h"
+#include "Message.h"
 
 std::shared_ptr<Event> Event::curEvent = nullptr;
 
-Event::Event(std::shared_ptr<Stage> st) : stage(st), state(0), stateCnt(0)
+Event::Event(std::shared_ptr<Stage> st) 
+	: stage(st), state(0), stateCnt(0), message(nullptr)
 {
 }
 
@@ -21,6 +23,11 @@ bool Event::GetEventFlag() {
 
 void Event::SetEvent(std::shared_ptr<Event> e) {
 	curEvent = e;
+}
+
+bool Event::IsMessageDisplay()
+{
+	return GetEventFlag() && curEvent->message && curEvent->message->GetState()==1;
 }
 
 // ボス登場
@@ -90,4 +97,57 @@ void EventStage1Boss::Update()
 		break;
 	}
 	++stateCnt;
+}
+
+// メッセージ
+EventMessage::EventMessage(std::shared_ptr<Stage> s, const char * name) : Event(s)
+{
+	message = std::make_unique<Message>(stage->GetPlayer()->GetInput(), name);
+}
+
+void EventMessage::Update()
+{
+	if (!message->Display()) {
+		curEvent = nullptr;
+	}
+}
+
+EventGuideSpawnEnemy::EventGuideSpawnEnemy(std::shared_ptr<Stage> s, EnemyGuide * g) 
+	: Event(s), guide(g)
+{
+	message = std::make_unique<Message>(stage->GetPlayer()->GetInput(), "guide5");
+	stage->GetCamera()->SetDefaultPos();
+}
+
+void EventGuideSpawnEnemy::Update()
+{
+	auto c = stage->GetCamera();
+	switch (state) {
+	case 0:
+		if (!message->Display()) {
+			message = nullptr;
+			stage->GetPlayer()->SetIgnoreCamera(true);
+			c->EventMove(3000.f - c->GetPos().x - WINDOW_WIDTH / 2.f, 0.f, 120);
+			++state;
+		}
+		break;
+	case 1:
+		if (c->EventMove()) {
+			c->ReturnScrollPos(60);
+			guide->CreateSampleEnemies();
+			++state;
+		}
+		break;
+	case 2:
+		if (++stateCnt == 120) {
+			++state;
+		}
+		break;
+	case 3:
+		if (c->ReturnScrollPos(60)) {
+			stage->GetPlayer()->SetIgnoreCamera(false);
+			curEvent = nullptr;
+		}
+		break;
+	}
 }

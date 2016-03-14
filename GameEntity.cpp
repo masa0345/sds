@@ -141,7 +141,7 @@ void GameEntity::UpdateAll() {
 			if (o1->CheckDamageFrom(*o2)) o1->DamageFrom(o2);
 		}
 	}
-	DebugDraw::String({ 0, 16 }, 0xffffff, "Entity: %d %d %d", manager.size(), dmgColobj.size(), atkColobj.size());
+	//DebugDraw::String({ 0, 16 }, 0xffffff, "Entity: %d %d %d", manager.size(), dmgColobj.size(), atkColobj.size());
 	dmgColobj.clear();
 	atkColobj.clear();
 
@@ -171,6 +171,16 @@ void GameEntity::RemoveExceptPlayer()
 		std::remove_if(manager.begin(), manager.end(),
 			[&](std::shared_ptr<GameEntity> p) { 
 		return p->GetObjectType() != PLAYER;
+	}), manager.end());
+}
+
+// 特定のオブジェクトを全て削除
+void GameEntity::RemoveAll(ObjectType type)
+{
+	manager.erase(
+		std::remove_if(manager.begin(), manager.end(),
+			[&](std::shared_ptr<GameEntity> p) {
+		return p->GetObjectType() == type;
 	}), manager.end());
 }
 

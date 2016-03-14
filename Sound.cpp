@@ -125,7 +125,7 @@ void Sound::StopBGM()
 {
 	for (auto it : mapSnd) {
 		if (it.second.isSE || it.second.hSnd == -1) continue;
-		if (CheckSoundMem(it.second.hSnd)) StopSoundMem(it.second.hSnd);
+		if (CheckSoundMem(it.second.hSnd) == 1) StopSoundMem(it.second.hSnd);
 	}
 }
 
@@ -134,7 +134,7 @@ void Sound::StopAll()
 {
 	for (auto it : mapSnd) {
 		if (it.second.hSnd == -1) continue;
-		if (CheckSoundMem(it.second.hSnd)) StopSoundMem(it.second.hSnd);
+		if (CheckSoundMem(it.second.hSnd) == 1) StopSoundMem(it.second.hSnd);
 	}
 }
 
@@ -146,13 +146,13 @@ void Sound::FadeOut(std::string name, int time)
 	if (time <= 0) time = 1;
 	fade.flag = true;
 	fade.time = time;
-	fade.vol = BGMVol;
+	fade.vol = (float)BGMVol;
 	fade.count = 0;
 
 	if (name == "default") {
 		for (auto it : mapSnd) {
 			if (it.second.isSE || it.second.hSnd == -1) continue;
-			if (CheckSoundMem(it.second.hSnd)) {
+			if (CheckSoundMem(it.second.hSnd) == 1) {
 				fade.name = it.first;
 				return;
 			}
@@ -165,23 +165,19 @@ void Sound::FadeOut(std::string name, int time)
 void Sound::FadeOut()
 {
 	if (!fade.flag) return;
-	fade.vol -= (double)BGMVol / fade.time;
+	fade.vol -= (float)BGMVol / fade.time;
 	if (fade.count++ == fade.time) {
 		fade.vol = 0;
 		fade.flag = false;
 		Stop(fade.name);
 		return;
 	}
-	if (fade.vol < 0.0) fade.vol = 0.0;
+	if (fade.vol <= 0.0) fade.vol = 0.0;
 	ChangeVolumeSoundMem((int)fade.vol, mapSnd[fade.name].hSnd);
-
-#ifdef _DEBUG
-	printfDx("fade.volume = %f.2", fade.vol);
-#endif
 }
 
 //‰¹—Ê‚ð•ÏX
-void Sound::ChangeVolume(double rate)
+void Sound::ChangeVolume(float rate)
 {
 	assert(rate > 0);
 
@@ -193,7 +189,7 @@ void Sound::ChangeSEVolume(int vol)
 	SEVol = vol;
 	for (auto it : mapSnd) {
 		if (!it.second.isSE) continue;
-		if (CheckSoundMem(it.second.hSnd)) ChangeVolumeSoundMem(SEVol, it.second.hSnd);
+		if (CheckSoundMem(it.second.hSnd) == 1) ChangeVolumeSoundMem(SEVol, it.second.hSnd);
 	}
 }
 void Sound::ChangeBGMVolume(int vol)
@@ -201,7 +197,7 @@ void Sound::ChangeBGMVolume(int vol)
 	BGMVol = vol;
 	for (auto it : mapSnd) {
 		if (it.second.isSE) continue;
-		if (CheckSoundMem(it.second.hSnd)) ChangeVolumeSoundMem(BGMVol, it.second.hSnd);
+		if (CheckSoundMem(it.second.hSnd) == 1) ChangeVolumeSoundMem(BGMVol, it.second.hSnd);
 	}
 }
 

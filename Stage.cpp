@@ -95,7 +95,7 @@ void Stage::PlaceEnemies() {
 			case 5: o = GameEntity::Create(std::make_shared<BlockRotaLiftR>()); break;
 			case 6: o = GameEntity::Create(std::make_shared<BlockRotaLiftL>()); break;
 			case 7: o = GameEntity::Create(std::make_shared<BlockNextMapGate>()); break;
-			case 8: o = GameEntity::Create(std::make_shared<BlockBreakable>()); break;
+			case 8: o = GameEntity::Create(std::make_shared<EnemyGuide>()); break;
 			case 9: o = GameEntity::Create(std::make_shared<EnemyStage1Boss>()); break;
 			}
 			if (o) {

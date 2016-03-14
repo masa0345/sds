@@ -79,7 +79,19 @@ private:
 	Enemy* parent;
 };
 
-
+// チュートリアル
+class EnemyGuide : public Enemy
+{
+public:
+	EnemyGuide();
+	void Update() override;
+	void Draw() const override;
+	void AddKillCount();
+	void CreateSampleEnemies();
+private:
+	int killCnt;
+	std::shared_ptr<Player> player;
+};
 
 
 

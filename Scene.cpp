@@ -11,6 +11,7 @@
 #include "Event.h"
 #include "Save.h"
 #include "Font.h"
+#include "Message.h"
 #include <DxLib.h>
 
 namespace {
@@ -22,6 +23,7 @@ SceneManager::SceneManager() : gameExit(false)
 	input = std::make_shared<JoypadInput>(DX_INPUT_PAD1 | DX_INPUT_KEY);
 	Scene::SetInput(input);
 	scene = new SceneTitleInit();
+	//scene = new SceneDebugStart();
 }
 
 SceneManager::~SceneManager()
@@ -70,7 +72,7 @@ Scene* SceneDebugStart::Update()
 	fonts.push_back(std::make_shared<Font>("î~PÉSÉVÉbÉNC5", 24, 4, "data/font/ume-pgc5.ttf"));
 	fonts.push_back(std::make_shared<Font>("î~PÉSÉVÉbÉNC5", 16, 3, "data/font/ume-pgc5.ttf", DX_FONTTYPE_ANTIALIASING_EDGE));
 	auto stage = std::make_shared<Stage>();
-	stage->SetStageMapNum(1, 0);
+	stage->SetStageMapNum(0, 0);
 	stage->LoadBGM();
 	return new SceneStageStart(stage);
 }
@@ -286,12 +288,15 @@ SceneEvent::SceneEvent(std::shared_ptr<Stage> s) : stage(s)
 
 Scene* SceneEvent::Update()
 {
-	GameEntity::UpdateAll();
-	Frontend::UpdateAll();
-
+	if (!Event::IsMessageDisplay()) {
+		GameEntity::UpdateAll();
+		Frontend::UpdateAll();
+	}
 	MapChip::Instance()->Draw(*stage->GetCamera());
 	GameEntity::DrawAll();
-	Frontend::DrawAll();
+	if (!Event::IsMessageDisplay()) {
+		Frontend::DrawAll();
+	}
 
 	if (Event::GetEventFlag()) {
 		Event::curEvent->Update();

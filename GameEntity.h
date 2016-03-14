@@ -115,6 +115,7 @@ public:
 	static void DrawAll();
 	static std::shared_ptr<GameEntity> Create(std::shared_ptr<GameEntity> e);
 	static void RemoveExceptPlayer();
+	static void RemoveAll(ObjectType type);
 	static void SetStage(std::shared_ptr<Stage> st);
 	
 protected:

@@ -18,7 +18,7 @@ struct FADE
 	std::string name;
 	int time;
 	int count;
-	double vol;
+	float vol;
 };
 
 class Sound
@@ -49,7 +49,7 @@ public:
 	void	FadeOut(std::string name, int time = 180);
 
 	int		GetVolume(bool isSE);
-	void	ChangeVolume(double rate);
+	void	ChangeVolume(float rate);
 	void	ChangeSEVolume(int vol);
 	void	ChangeBGMVolume(int vol);
 	bool	IsPlaying(std::string name);

@@ -38,9 +38,9 @@ inline bool InRangeEq(T1 low, T2 n, T3 high) {
 }
 
 #ifdef _DEBUG
-const char WINDOW_TITLE[] = "sds[DEBUG]";
+const char WINDOW_TITLE[] = "StarDust[DEBUG]";
 #else
-const char WINDOW_TITLE[] = "sds";
+const char WINDOW_TITLE[] = "StarDust";
 #endif
 
 typedef unsigned char byte;
