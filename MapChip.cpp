@@ -39,15 +39,13 @@ void MapChip::Init()
 
 void MapChip::Draw(const Camera& c)
 {
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	DrawBackGround(c);
 
 	Rect r = c.GetVisibleRect(mmx, mmy);
 
 	for (int x = r.left; x < r.right; x++) {
 		for (int y = r.top; y < r.bottom; y++) {
-#ifdef _DEBUG
-			//DrawBoxScreen(x*MW, y*MH, x*MW+MW, y*MH+MH, 0x222222, FALSE);
-#endif
 			Vector2 p = c.TransCoord({ x*MW, y*MH });
 			if (img != nullptr) 
 				DrawGraph((int)p.x, (int)p.y, img->at(MapDrawNum(0, x, y)), TRUE);

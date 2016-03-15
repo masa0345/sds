@@ -1,7 +1,6 @@
 #include "Input.h"
 #include <DxLib.h>
 #include <cassert>
-//#include "debug.h"
 
 namespace
 {
@@ -201,35 +200,6 @@ void JoypadInput::Update()
 			break;
 		}
 	}
-
-#ifdef DEBUG_DRAW
-	int i = 0;
-	int y = WINDOW_HEIGHT - 16;
-	for (auto it = buffer.begin(); it != buffer.end(); ++i, ++it) {
-		if (*it == padmap[INPUT_LEFT]) {
-			DebugDraw::String(Vector2(0, y - i * 16), 0xffffff, "Å©");
-		}
-		else if (*it == padmap[INPUT_RIGHT]) {
-			DebugDraw::String(Vector2(0, y - i * 16), 0xffffff, "Å®");
-		}
-		else if (*it == padmap[INPUT_UP]) {
-			DebugDraw::String(Vector2(0, y - i * 16), 0xffffff, "Å™");
-		}
-		else if (*it == padmap[INPUT_DOWN]) {
-			DebugDraw::String(Vector2(0, y - i * 16), 0xffffff, "Å´");
-		}
-		else if (*it == padmap[INPUT_Z]) {
-			DebugDraw::String(Vector2(0, y - i * 16), 0xffffff, "Z");
-		}
-		else if (*it == padmap[INPUT_X]) {
-			DebugDraw::String(Vector2(0, y - i * 16), 0xffffff, "X");
-		}
-		else if (*it == padmap[INPUT_C]) {
-			DebugDraw::String(Vector2(0, y - i * 16), 0xffffff, "C");
-		}
-	}
-	DebugDraw::String(Vector2(64, y), 0xffffff, "%d", inputCnt);
-#endif
 }
 
 int JoypadInput::Get(Button pad, bool ignore) const

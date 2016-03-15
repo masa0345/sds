@@ -28,5 +28,6 @@ private:
 	static int font;
 	static std::queue< std::shared_ptr<DebugObject> > dobj;
 };
-
+#ifdef _DEBUG
 #define DEBUG_DRAW
+#endif

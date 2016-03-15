@@ -38,9 +38,10 @@ void GameEntity::Draw() const {
 	SetDrawBlendMode(img->blendmode, img->alpha);
 	DrawRotaGraphF(p.x+img->ofs_x, p.y+img->ofs_y, 
 		img->exRate, img->angle, img->hdl->at(img->num), TRUE, (int)dir);
-
-	//if (dmgHitbox) dmgHitbox->DrawRect(p, dir, false);
-	//if (atkHitbox) atkHitbox->DrawRect(p, dir, true);
+#ifdef DEBUG_DRAW
+	if (dmgHitbox) dmgHitbox->DrawRect(p, dir, false);
+	if (atkHitbox) atkHitbox->DrawRect(p, dir, true);
+#endif
 }
 
 

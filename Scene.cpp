@@ -587,6 +587,7 @@ Scene * SceneTitle::Update()
 		break;
 	}
 
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	DrawModiGraph(0, 0, WINDOW_WIDTH, 0, 
 		WINDOW_WIDTH, WINDOW_HEIGHT, 0, WINDOW_HEIGHT, images[0], FALSE);
 	int ofs = ++backScroll % 48;
@@ -671,6 +672,7 @@ Scene* SceneStageSelect::Update()
 		return new SceneStageStart(stage);
 	}
 
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 	DrawModiGraph(0, 0, WINDOW_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT, 0, WINDOW_HEIGHT, images[0], FALSE);
 	int ofs = ++backScroll % 48;
 	for (int x = 0; x < WINDOW_WIDTH / 48 + 1; ++x) {
